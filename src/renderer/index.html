@@ -1,65 +1,47 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Voip.ms SMS - Hello World</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 40px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        #greeting {
-            background: #f0f0f0;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Voip.ms SMS</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <h1>Voip.ms SMS</h1>
-    <p>Electron Hello World</p>
+  <div class="app-container">
+    <!-- Left Pane: Conversation List -->
+    <div class="conversation-list-pane">
+      <div class="conversation-list-header">
+        <h2>Conversations</h2>
+      </div>
+      <div class="conversation-list" id="conversation-list">
+        <!-- Conversations will be inserted here -->
+      </div>
+    </div>
 
-    <div id="greeting">Click the button to get a greeting from the main process</div>
+    <!-- Right Pane: Message Thread -->
+    <div class="message-thread-pane">
+      <div class="message-thread-header" id="message-thread-header">
+        <span class="contact-name">Select a conversation</span>
+      </div>
+      
+      <div class="message-list" id="message-list">
+        <!-- Messages will be inserted here -->
+      </div>
 
-    <button id="greetBtn">Get Greeting</button>
+      <div class="compose-box" id="compose-box">
+        <textarea id="message-input" placeholder="Type a message..." rows="1"></textarea>
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const greetBtn = document.getElementById('greetBtn');
-        const greetingDiv = document.getElementById('greeting');
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span id="status-text">Last checked: --</span>
+    <span id="unread-count">0 unread</span>
+  </div>
 
-        greetBtn.addEventListener('click', async () => {
-            const greeting = await window.electronAPI.getGreeting('Developer');
-            greetingDiv.textContent = greeting;
-
-            window.electronAPI.logMessage('User clicked greet button');
-        });
-
-        window.electronAPI.logMessage('Renderer loaded successfully');
-    </script>
+  <script src="renderer.js"></script>
 </body>
-
 </html>

@@ -1,10 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const MigrationRunner = require('./db/MigrationRunner');
-const SqliteDatabase = require('./db/SqliteDatabase');
 
 let mainWindow;
-let db;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -17,26 +14,14 @@ function createWindow() {
         }
     });
 
-    mainWindow.loadFile('renderer/index.html');
+    mainWindow.loadFile('src/renderer/index.html');
 
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
 }
 
-app.whenReady().then(async () => {
-    // Get database path in user data directory
-    const dbPath = path.join(app.getPath('userData'), 'voip-sms.db');
-
-    // Run migrations first
-    const migrator = new MigrationRunner(dbPath);
-    migrator.run();
-
-    // Initialize database for CRUD
-    db = new SqliteDatabase(dbPath);
-    await db.init();
-
-    // Create window after database is ready
+app.whenReady().then(() => {
     createWindow();
 
     ipcMain.handle('get-greeting', async (event, name) => {
@@ -51,11 +36,5 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
-    }
-});
-
-app.on('before-quit', () => {
-    if (db) {
-        db.close();
     }
 });
