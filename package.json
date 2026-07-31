@@ -1,16 +1,30 @@
 {
   "name": "voip-sms",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "Native Linux SMS/MMS desktop app for Voip.ms",
+  "main": "src/main/index.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "postinstall": "npm run rebuild"
   },
-  "keywords": [],
+  "keywords": [
+    "sms",
+    "mms",
+    "voip.ms",
+    "electron",
+    "linux"
+  ],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^13.0.2"
+  },
   "devDependencies": {
-    "electron": "^43.2.0"
+    "electron": "^43.2.0",
+    "electron-rebuild": "^3.2.9",
+    "jest": "^30.4.2"
   }
 }
