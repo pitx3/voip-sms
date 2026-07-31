@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Voip.ms SMS - Hello World</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #greeting {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Voip.ms SMS</h1>
+    <p>Electron Hello World</p>
+
+    <div id="greeting">Click the button to get a greeting from the main process</div>
+
+    <button id="greetBtn">Get Greeting</button>
+
+    <script>
+        const greetBtn = document.getElementById('greetBtn');
+        const greetingDiv = document.getElementById('greeting');
+
+        greetBtn.addEventListener('click', async () => {
+            const greeting = await window.electronAPI.getGreeting('Developer');
+            greetingDiv.textContent = greeting;
+
+            window.electronAPI.logMessage('User clicked greet button');
+        });
+
+        window.electronAPI.logMessage('Renderer loaded successfully');
+    </script>
+</body>
+
+</html>
