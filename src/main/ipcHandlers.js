@@ -1,6 +1,10 @@
 // src/main/ipcHandlers.js
 
 import { ipcMain } from 'electron';
+import { appEvents } from './events.js';
+
+// TEMPORARY: In-memory credential storage
+let storedCredentials = null;
 
 export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // Mock status (for banner)
@@ -44,6 +48,32 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
 
   ipcMain.handle('send-message-voipms', async (event, params) => {
     return voipMsService.sendMessage(params);
+  });
+
+  // Credentials (TEMPORARY - in-memory)
+  ipcMain.handle('has-credentials', async () => {
+    return { hasCredentials: storedCredentials !== null };
+  });
+
+  ipcMain.handle('test-credentials', async (event, { username, password }) => {
+    // TEMPORARY: Always succeed for UI testing
+    return {
+      success: true,
+      message: 'Connection successful'
+    };
+  });
+
+  ipcMain.handle('save-credentials', async (event, { username, password }) => {
+    // TEMPORARY: Store in memory
+    storedCredentials = { username, password };
+    
+    // Emit event for main process to handle window switching
+    appEvents.emit('credentials-saved');
+    
+    return {
+      success: true,
+      message: 'Credentials saved'
+    };
   });
 
   // Logging

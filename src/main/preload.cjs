@@ -21,7 +21,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchMessagesVoipms: (options) => ipcRenderer.invoke('fetch-messages-voipms'),
   sendMessageVoipms: (params) => ipcRenderer.invoke('send-message-voipms'),
   
+  // Credentials
+  hasCredentials: () => ipcRenderer.invoke('has-credentials'),
+  testCredentials: (credentials) => ipcRenderer.invoke('test-credentials', credentials),
+  saveCredentials: (credentials) => ipcRenderer.invoke('save-credentials', credentials),
+  
   // Utility
   logMessage: (message) => ipcRenderer.send('log-message', message),
-  
 });
