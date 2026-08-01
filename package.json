@@ -4,6 +4,7 @@
   "description": "Native Linux SMS/MMS desktop app for Voip.ms",
   "main": "src/main/index.js",
   "scripts": {
+    "dev": "NODE_ENV=development electron .",
     "start": "electron .",
     "test": "jest",
     "test:watch": "jest --watch",
