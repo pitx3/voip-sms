@@ -1,7 +1,7 @@
 // tests/renderer/utils/format.test.js
 
-const { formatPhoneNumber, formatMessageTime } = require('../../../../src/renderer/utils/format.js');
-// import { formatPhoneNumber, formatMessageTime } from '../../../../src/renderer/utils/format.js';
+// const { formatPhoneNumber, formatMessageTime } = require('../../../../src/renderer/utils/format.js');
+import { formatPhoneNumber, formatMessageTime } from '../../../../src/renderer/utils/format.js';
 
 describe('formatPhoneNumber', () => {
   test('formats 11-digit US number with +1', () => {

@@ -1,5 +1,12 @@
 // const { formatPhoneNumber, formatMessageTime } = require('./utils/format.js');
 import { formatPhoneNumber, formatMessageTime } from './utils/format.js';
+import {
+  getMockStatus,
+  getConversations,
+  getConversationById,
+  getMessages,
+  sendMessage
+} from './api/ipc.js';
 
 // State
 let selectedConversationId = null;
@@ -7,25 +14,26 @@ let currentMessages = [];
 
 // --- IPC Helpers ---
 
-async function getMockStatus() {
-  const status = await window.electronAPI.getMockStatus();
-  if (status.isMock) {
-    document.getElementById('mock-banner').style.display = 'block';
-  }
-  return status;
-}
 
-async function getConversations() {
-  return await window.electronAPI.getConversations();
-}
+// async function getMockStatus() {
+//   const status = await ipcGetMockStatus();
+//   if (status.isMock) {
+//     document.getElementById('mock-banner').style.display = 'block';
+//   }
+//   return status;
+// }
 
-async function getMessages(conversationId, options = {}) {
-  return await window.electronAPI.getMessages(conversationId, options);
-}
+// async function getConversations() {
+//   return await ipcGetConversations();
+// }
 
-async function sendMessage(conversationId, content) {
-  return await window.electronAPI.sendMessage(conversationId, content);
-}
+// async function getMessages(conversationId, options = {}) {
+//   return await ipcGetMessages(conversationId, options);
+// }
+
+// async function sendMessage(conversationId, content) {
+//   return await ipcSendMessage(conversationId, content);
+// }
 
 // --- Render Functions ---
 
@@ -136,7 +144,10 @@ document.getElementById('message-input').addEventListener('keydown', (e) => {
 // --- Initialize ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await getMockStatus();
+  const mockStatus = await getMockStatus();
+  if (mockStatus.isMock) {
+    document.getElementById('mock-banner').style.display = 'block';
+  }
   await renderConversationList();
   await updateStatusBar();
   
