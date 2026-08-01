@@ -92,12 +92,4 @@ function reset() {
   voipmsInstance = null;
 }
 
-// module.exports = {
-//   getDatabase,
-//   getVoipMsClient,
-//   getMockStatus,
-//   reset,
-//   CONFIG
-// };
-
 export { getDatabase, getVoipMsClient, getVoipMsService, getMockStatus, reset, CONFIG };

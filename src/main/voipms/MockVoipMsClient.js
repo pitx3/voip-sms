@@ -8,7 +8,13 @@ export default class MockVoipMsClient extends VoipMsClient {
     this._mockDids = [
       {
         did: '7195555309',
-        description: 'FAIRPLAY, CO',
+        description: 'Business',
+        sms_enabled: '1',
+        mms_available: 1
+      },
+      {
+        did: '7205552929',
+        description: 'Financial',
         sms_enabled: '1',
         mms_available: 1
       }

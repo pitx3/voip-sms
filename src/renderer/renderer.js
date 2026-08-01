@@ -1,4 +1,4 @@
-// const { formatPhoneNumber, formatMessageTime } = require('./utils/format.js');
+import { showNewConversationDialog } from './ui/newConversationDialog.js';
 import { formatPhoneNumber, formatMessageTime } from './utils/format.js';
 import {
   getMockStatus,
@@ -134,3 +134,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     await selectConversation(conversations[0].id);
   }
 });
+
+// New Conversation Button
+const newConversationBtn = document.getElementById('new-conversation-btn');
+if (newConversationBtn) {
+  newConversationBtn.addEventListener('click', async () => {
+    try {
+      const result = await window.electronAPI.getDIDsVoipms();
+      
+      if (!result.dids || result.dids.length === 0) {
+        alert('No DIDs available. Please check your Voip.ms account.');
+        return;
+      }
+      
+      showNewConversationDialog({
+        dids: result.dids,
+        onConfirm: (did, phoneNumber) => {
+          console.log('New conversation:', { did, phoneNumber });
+          // TODO: Check if conversation exists, open or create
+        },
+        onCancel: () => {
+          console.log('New conversation cancelled');
+        }
+      });
+    } catch (error) {
+      console.error('Failed to load DIDs:', error);
+      alert('Failed to load DIDs. Please check your connection.');
+    }
+  });
+}
