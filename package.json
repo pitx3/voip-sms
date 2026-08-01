@@ -1,12 +1,13 @@
 {
   "name": "voip-sms",
   "version": "0.1.0",
+  "type": "module",
   "description": "Native Linux SMS/MMS desktop app for Voip.ms",
   "main": "src/main/index.js",
   "scripts": {
     "dev": "NODE_ENV=development electron .",
     "start": "electron .",
-    "test": "jest",
+    "test": "vitest",
     "test:watch": "jest --watch",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "postinstall": "npm run rebuild"
@@ -26,6 +27,6 @@
   "devDependencies": {
     "electron": "^43.2.0",
     "electron-rebuild": "^3.2.9",
-    "jest": "^30.4.2"
+    "vitest": "^4.1.10"
   }
 }

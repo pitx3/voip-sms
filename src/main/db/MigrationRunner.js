@@ -1,6 +1,10 @@
-const Database = require('better-sqlite3');
-const fs = require('fs');
-const path = require('path');
+// const Database = require('better-sqlite3');
+// const fs = require('fs');
+// const path = require('path');
+
+import Database from 'better-sqlite3';
+import fs from 'fs';
+import path from 'path';
 
 class MigrationRunner {
   constructor(dbPath) {
@@ -56,4 +60,4 @@ class MigrationRunner {
   }
 }
 
-module.exports = MigrationRunner;
+export default MigrationRunner;

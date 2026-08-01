@@ -1,3 +1,6 @@
+// const { formatPhoneNumber, formatMessageTime } = require('./utils/format.js');
+import { formatPhoneNumber, formatMessageTime } from './utils/format.js';
+
 // State
 let selectedConversationId = null;
 let currentMessages = [];
@@ -88,33 +91,6 @@ async function selectConversation(id) {
   selectedConversationId = id;
   await renderConversationList();
   await renderMessages(id);
-}
-
-// --- Utilities ---
-
-function formatPhoneNumber(number) {
-  const cleaned = number.replace(/\D/g, '');
-  
-  if (cleaned.length === 11 && cleaned.startsWith('1')) {
-    const match = cleaned.match(/^1(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `(${match[1]}) ${match[2]}-${match[3]}`;
-    }
-  }
-  
-  if (cleaned.length === 10) {
-    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `(${match[1]}) ${match[2]}-${match[3]}`;
-    }
-  }
-  
-  return number;
-}
-
-function formatMessageTime(timestamp) {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 async function updateStatusBar() {

@@ -1,6 +1,14 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
-const { getDatabase, getMockStatus } = require('./di.config');
+// const { app, BrowserWindow, ipcMain } = require('electron');
+// const path = require('path');
+// const { getDatabase, getMockStatus } = require('./di.config');
+
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import { getDatabase, getMockStatus } from './di.config.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow;
 let db = null;
@@ -10,7 +18,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -23,9 +31,14 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Initialize database (from di.config, could be Mock or Real)
-  db = getDatabase();
+  db = await getDatabase();
+
+  // DEBUG: What did we get?
+  console.log('DB instance:', db);
+  console.log('DB methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(db)));
+
 
   createWindow();
 

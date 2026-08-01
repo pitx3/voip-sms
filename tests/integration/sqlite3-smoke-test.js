@@ -1,5 +1,8 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+// const Database = require('better-sqlite3');
+// const path = require('path');
+
+import Database from 'better-sqlite3';
+import path from 'path';
 
 describe('SQLite Connection Smoke Test', () => {
   let db;

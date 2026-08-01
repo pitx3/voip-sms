@@ -1,7 +1,12 @@
-const MigrationRunner = require('../../src/main/db/MigrationRunner');
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+// const MigrationRunner = require('../../src/main/db/MigrationRunner');
+// const Database = require('better-sqlite3');
+// const path = require('path');
+// const fs = require('fs');
+
+import MigrationRunner from '../../src/main/db/MigrationRunner.js';
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
 
 describe('MigrationRunner', () => {
   let testDbPath;

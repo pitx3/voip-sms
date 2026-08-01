@@ -1,7 +1,10 @@
 // src/main/di.config.js
 
-const path = require('path');
-const { app } = require('electron');
+// const path = require('path');
+// const { app } = require('electron');
+
+import path from 'path';
+import { app } from 'electron';
 
 // --- Environment Classification ---
 // Only these environments default to mock
@@ -31,31 +34,35 @@ let dbInstance = null;
 let voipmsInstance = null;
 
 // --- Database ---
-function getDatabase() {
+async function getDatabase() {
   if (!dbInstance) {
     if (CONFIG.USE_MOCK_DB) {
-      const MockDatabase = require('./db/MockDatabase');
+    //   const MockDatabase = require('./db/MockDatabase');
+      const { default: MockDatabase } = await import('./db/MockDatabase.js');
       dbInstance = new MockDatabase();
     } else {
-      const SqliteDatabase = require('./db/SqliteDatabase');
+    //   const SqliteDatabase = require('./db/SqliteDatabase');
+      const { default: SqliteDatabase } = await import('./db/SqliteDatabase.js');
       const dbPath = path.join(app.getPath('userData'), 'voip-sms.db');
       dbInstance = new SqliteDatabase(dbPath);
     }
     
-    dbInstance.init();
+    await dbInstance.init();
   }
   
   return dbInstance;
 }
 
 // --- Voip.ms Client ---
-function getVoipMsClient() {
+async function getVoipMsClient() {
   if (!voipmsInstance) {
     if (CONFIG.USE_MOCK_VOIPMS) {
-      const MockVoipMsClient = require('./voipms/MockVoipMsClient');
+    //   const MockVoipMsClient = require('./voipms/MockVoipMsClient');
+      const { default: MockVoipMsClient } = await import('./voipms/MockVoipMsClient.js');
       voipmsInstance = new MockVoipMsClient();
     } else {
-      const RealVoipMsClient = require('./voipms/RealVoipMsClient');
+    //   const RealVoipMsClient = require('./voipms/RealVoipMsClient');
+      const { default: RealVoipMsClient } = await import('./voipms/RealVoipMsClient.js');
       voipmsInstance = new RealVoipMsClient({ /* credentials from keyring later */ });
     }
   }
@@ -81,10 +88,12 @@ function reset() {
   voipmsInstance = null;
 }
 
-module.exports = {
-  getDatabase,
-  getVoipMsClient,
-  getMockStatus,
-  reset,
-  CONFIG
-};
+// module.exports = {
+//   getDatabase,
+//   getVoipMsClient,
+//   getMockStatus,
+//   reset,
+//   CONFIG
+// };
+
+export { getDatabase, getVoipMsClient, getMockStatus, reset, CONFIG };

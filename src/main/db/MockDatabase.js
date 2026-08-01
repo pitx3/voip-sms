@@ -117,4 +117,4 @@ class MockDatabase {
   }
 }
 
-module.exports = MockDatabase;
+export default MockDatabase;
