@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   hasCredentials: () => ipcRenderer.invoke('has-credentials'),
   testCredentials: (credentials) => ipcRenderer.invoke('test-credentials', credentials),
   saveCredentials: (credentials) => ipcRenderer.invoke('save-credentials', credentials),
+  deleteCredentials: () => ipcRenderer.invoke('delete-credentials'),
   
   // Utility
   logMessage: (message) => ipcRenderer.send('log-message', message),

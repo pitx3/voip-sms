@@ -163,3 +163,22 @@ if (newConversationBtn) {
     }
   });
 }
+
+// Logout Button
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    const confirmed = confirm('Are you sure you want to logout? You will need to re-enter your credentials.');
+    
+    if (confirmed) {
+      try {
+        await window.electronAPI.deleteCredentials();
+        // Reload the app to show credentials window
+        window.location.reload();
+      } catch (error) {
+        console.error('Logout failed:', error);
+        alert('Failed to logout. Please try again.');
+      }
+    }
+  });
+}

@@ -25,17 +25,26 @@ function createWindow() {
       nodeIntegration: false
     }
   });
-  console.log('[Main] createWindow called');
 
   mainWindow.loadFile('src/renderer/index.html');
+
+  // Listen for logout - switch to credentials window
+  appEvents.once('credentials-deleted', () => {    
+    // Create credentials window FIRST
+    createCredentialsWindow();
+    
+    // THEN close main window
+    mainWindow.close();
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
+// can we save?
+
 function createCredentialsWindow() {
-  console.log('[Main] Creating credentials window');
   
   const credentialWindow = new BrowserWindow({
     width: 500,
@@ -52,11 +61,8 @@ function createCredentialsWindow() {
 
   // Listen for credentials-saved event (from EventEmitter, not IPC)
   appEvents.once('credentials-saved', () => {
-    console.log('[Main] Credentials saved - switching to main window');
-    
     // Create main window FIRST
     createWindow();
-    
     // THEN close credentials window
     credentialWindow.close();
   });

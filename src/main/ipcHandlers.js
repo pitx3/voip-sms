@@ -2,7 +2,7 @@
 
 import { ipcMain } from 'electron';
 import { appEvents } from './events.js';
-import { saveCredentials, getCredentials, hasCredentials as checkCredentials } from './services/CredentialStorageService.js';
+import { saveCredentials, getCredentials, hasCredentials as checkCredentials, deleteCredentials } from './services/CredentialStorageService.js';
 
 export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // Mock status (for banner)
@@ -81,6 +81,17 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
       };
     }
   });
+
+  ipcMain.handle('delete-credentials', async () => {
+  try {
+    await deleteCredentials();
+    // Signal that credentials were deleted - switch to credentials window
+    appEvents.emit('credentials-deleted');
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
 
   // Logging
   ipcMain.on('log-message', (event, message) => {
