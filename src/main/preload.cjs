@@ -1,8 +1,9 @@
+// src/main/preload.cjs
+
 const { contextBridge, ipcRenderer } = require('electron');
-// import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-    // Mock status (for banner)
+  // Mock status (for banner)
   getMockStatus: () => ipcRenderer.invoke('get-mock-status'),
   
   // Conversations
@@ -15,7 +16,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Send message
   sendMessage: (conversationId, content) => ipcRenderer.invoke('send-message', conversationId, content),
   
+  // Voip.ms Operations
+  getDIDsVoipms: () => ipcRenderer.invoke('get-dids-voipms'),
+  fetchMessagesVoipms: (options) => ipcRenderer.invoke('fetch-messages-voipms'),
+  sendMessageVoipms: (params) => ipcRenderer.invoke('send-message-voipms'),
+  
   // Utility
   logMessage: (message) => ipcRenderer.send('log-message', message),
-
+  
 });

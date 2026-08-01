@@ -1,8 +1,5 @@
 // src/main/di.config.js
 
-// const path = require('path');
-// const { app } = require('electron');
-
 import path from 'path';
 import { app } from 'electron';
 
@@ -70,6 +67,13 @@ async function getVoipMsClient() {
   return voipmsInstance;
 }
 
+// --- Voip.ms Service ---
+async function getVoipMsService() {
+  const client = await getVoipMsClient();
+  const { VoipMsService } = await import('./services/VoipMsService.js');
+  return new VoipMsService(client);
+}
+
 // --- Mock Status (for UI banner) ---
 function getMockStatus() {
   return {
@@ -96,4 +100,4 @@ function reset() {
 //   CONFIG
 // };
 
-export { getDatabase, getVoipMsClient, getMockStatus, reset, CONFIG };
+export { getDatabase, getVoipMsClient, getVoipMsService, getMockStatus, reset, CONFIG };
