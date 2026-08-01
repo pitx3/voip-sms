@@ -13,6 +13,11 @@ const testResult = document.getElementById('test-result');
 const usernameInput = document.getElementById('api-username');
 const passwordInput = document.getElementById('api-password');
 
+// DEBUG: Verify elements are found
+console.log('Form element:', form);
+console.log('Test button:', testConnectionBtn);
+console.log('Save button:', saveBtn);
+
 // ===========================================
 // Test Connection Button Handler
 // ===========================================
