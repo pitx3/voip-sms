@@ -12,29 +12,6 @@ import {
 let selectedConversationId = null;
 let currentMessages = [];
 
-// --- IPC Helpers ---
-
-
-// async function getMockStatus() {
-//   const status = await ipcGetMockStatus();
-//   if (status.isMock) {
-//     document.getElementById('mock-banner').style.display = 'block';
-//   }
-//   return status;
-// }
-
-// async function getConversations() {
-//   return await ipcGetConversations();
-// }
-
-// async function getMessages(conversationId, options = {}) {
-//   return await ipcGetMessages(conversationId, options);
-// }
-
-// async function sendMessage(conversationId, content) {
-//   return await ipcSendMessage(conversationId, content);
-// }
-
 // --- Render Functions ---
 
 async function renderConversationList() {
