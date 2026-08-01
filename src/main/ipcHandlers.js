@@ -2,9 +2,7 @@
 
 import { ipcMain } from 'electron';
 import { appEvents } from './events.js';
-
-// TEMPORARY: In-memory credential storage
-let storedCredentials = null;
+import { saveCredentials, getCredentials, hasCredentials as checkCredentials } from './services/CredentialStorageService.js';
 
 export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // Mock status (for banner)
@@ -50,13 +48,15 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     return voipMsService.sendMessage(params);
   });
 
-  // Credentials (TEMPORARY - in-memory)
+  // Credentials (using safeStorage + encrypted file)
   ipcMain.handle('has-credentials', async () => {
-    return { hasCredentials: storedCredentials !== null };
+    const exists = await checkCredentials();
+    return { hasCredentials: exists };
   });
 
   ipcMain.handle('test-credentials', async (event, { username, password }) => {
     // TEMPORARY: Always succeed for UI testing
+    // Later: Actually call Voip.ms getIP endpoint
     return {
       success: true,
       message: 'Connection successful'
@@ -64,16 +64,22 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   });
 
   ipcMain.handle('save-credentials', async (event, { username, password }) => {
-    // TEMPORARY: Store in memory
-    storedCredentials = { username, password };
-    
-    // Emit event for main process to handle window switching
-    appEvents.emit('credentials-saved');
-    
-    return {
-      success: true,
-      message: 'Credentials saved'
-    };
+    try {
+      await saveCredentials(username, password);
+      
+      // Signal that credentials were saved
+      appEvents.emit('credentials-saved');
+      
+      return {
+        success: true,
+        message: 'Credentials saved'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
   });
 
   // Logging
