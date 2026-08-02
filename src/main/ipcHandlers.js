@@ -55,12 +55,14 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   });
 
   ipcMain.handle('test-credentials', async (event, { username, password }) => {
-    // TEMPORARY: Always succeed for UI testing
-    // Later: Actually call Voip.ms getIP endpoint
-    return {
-      success: true,
-      message: 'Connection successful'
-    };
+    console.log('[IPC] test-credentials called with username:', username);
+    
+    // Call VoipMsService with the provided credentials
+    console.log('[IPC] Calling voipMsService.testConnection()...');
+    const result = await voipMsService.testConnection({ username, password });
+    
+    console.log('[IPC] Result received:', result);
+    return result;
   });
 
   ipcMain.handle('save-credentials', async (event, { username, password }) => {

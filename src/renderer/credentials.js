@@ -24,6 +24,11 @@ console.log('Save button:', saveBtn);
 testConnectionBtn.addEventListener('click', async () => {
   const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
+
+  console.log('[Renderer] test connection clicked');
+    console.log('[Renderer] window.electronAPI exists:', !!window.electronAPI);
+  console.log('[Renderer] testCredentials function exists:', typeof window.electronAPI?.testCredentials);
+ 
   
   // Validate not empty
   if (!username || !password) {
@@ -31,18 +36,21 @@ testConnectionBtn.addEventListener('click', async () => {
     return;
   }
   
-  setButtonsState(true, 'Testing...');
+  showLoadingOverlay('Testing...');
+  clearTestResult();
   
   try {
     const result = await window.electronAPI.testCredentials({ username, password });
     
     if (result.success) {
       showTestResult('✓ Connection successful!', 'success');
+      hideLoadingOverlay();
       lastTestPassed = true;
       lastTestedUsername = username;
       lastTestedPassword = password;
     } else {
       showTestResult('✗ ' + result.message, 'error');
+      hideLoadingOverlay();
       lastTestPassed = false;
       lastTestedUsername = username;
       lastTestedPassword = password;
@@ -51,7 +59,7 @@ testConnectionBtn.addEventListener('click', async () => {
     showTestResult('✗ ' + error.message, 'error');
     lastTestPassed = false;
   } finally {
-    setButtonsState(false, 'Test Connection');
+    hideLoadingOverlay();
   }
 });
 
@@ -83,7 +91,8 @@ form.addEventListener('submit', async (e) => {
   
   // Test if needed
   if (needToTest) {
-    setButtonsState(true, 'Testing...');
+    showLoadingOverlay('Testing...');
+    clearTestResult();
     
     try {
       const testResult = await window.electronAPI.testCredentials({ username, password });
@@ -91,7 +100,7 @@ form.addEventListener('submit', async (e) => {
       if (!testResult.success) {
         showTestResult('✗ ' + testResult.message, 'error');
         lastTestPassed = false;
-        setButtonsState(false, 'Save & Continue');
+        hideLoadingOverlay();
         return;
       }
       
@@ -102,13 +111,13 @@ form.addEventListener('submit', async (e) => {
     } catch (error) {
       showTestResult('✗ ' + error.message, 'error');
       lastTestPassed = false;
-      setButtonsState(false, 'Save & Continue');
+      hideLoadingOverlay();
       return;
     }
   }
   
   // Save credentials
-  setButtonsState(true, 'Saving...');
+  showLoadingOverlay('Saving...');
   
   try {
     const saveResult = await window.electronAPI.saveCredentials({ username, password });
@@ -116,14 +125,15 @@ form.addEventListener('submit', async (e) => {
     if (saveResult.success) {
       // Credentials saved — main process will close this window and open main app
       showTestResult('✓ Credentials saved! Opening app...', 'success');
+      hideLoadingOverlay();
       // Don't call window.close() - main process handles it
     } else {
       showTestResult('✗ ' + saveResult.message, 'error');
-      setButtonsState(false, 'Save & Continue');
+      hideLoadingOverlay();
     }
   } catch (error) {
     showTestResult('✗ ' + error.message, 'error');
-    setButtonsState(false, 'Save & Continue');
+    hideLoadingOverlay();
   }
 });
 
@@ -135,8 +145,21 @@ function showTestResult(message, type) {
   testResult.className = 'test-result ' + type;
 }
 
-function setButtonsState(disabled, testBtnText) {
-  testConnectionBtn.disabled = disabled;
-  saveBtn.disabled = disabled;
-  testConnectionBtn.textContent = testBtnText;
+function clearTestResult() {
+  const resultEl = document.getElementById('test-result');
+    resultEl.className = 'test-result';
+}
+
+function showLoadingOverlay(message) {
+  // return;  // just testing
+  const overlay = document.getElementById('loading-overlay');
+  const messageEl = document.getElementById('loading-message');
+  
+  messageEl.textContent = message;
+  overlay.classList.add('visible');
+}
+
+function hideLoadingOverlay() {
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.remove('visible');
 }

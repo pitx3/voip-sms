@@ -4,40 +4,59 @@ import { VoipMsClient } from './VoipMsClient.js';
 import { getCredentials } from '../services/CredentialStorageService.js';
 
 const API_BASE_URL = 'https://voip.ms/api/v1/rest.php';
+const API_TIMEOUT_MS = 30000; // 30 seconds
 
 export default class RealVoipMsClient extends VoipMsClient {
-  
+
   async testConnection(credentials = null) {
-    // Use provided credentials, or fetch stored ones
     const creds = credentials || await getCredentials();
     
     if (!creds) {
-        return {
+      return {
         success: false,
         message: 'No credentials found'
-        };
+      };
     }
 
-    const API_BASE_URL = 'https://voip.ms/api/v1/rest.php';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
     
-    const response = await fetch(
-        `${API_BASE_URL}?method=getIP&api_username=${encodeURIComponent(creds.username)}&api_password=${encodeURIComponent(creds.password)}`
-    );
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}?method=getIP&api_username=${encodeURIComponent(creds.username)}&api_password=${encodeURIComponent(creds.password)}`,
+        { signal: controller.signal }
+      );
 
-    const result = await response.json();
+      clearTimeout(timeoutId);
+      const result = await response.json();
 
-    if (result.status === 'success') {
+      if (result.status === 'success') {
         return {
-        success: true,
-        message: 'Connection successful'
+          success: true,
+          message: 'Connection successful'
         };
-    } else {
+      } else {
         return {
+          success: false,
+          message: result.message || 'Authentication failed'
+        };
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        return {
+          success: false,
+          message: 'Connection timed out (30s)'
+        };
+      }
+      return {
         success: false,
-        message: result.message || 'Authentication failed'
-        };
+        message: `Connection failed: ${error.message}`
+      };
     }
-  q}
+  }
+
+
 
 
   async getDIDs() {

@@ -5,8 +5,8 @@ export class VoipMsService {
     this.client = voipMsClient;
   }
 
-  async testConnection() {
-    return this.client.testConnection();
+  async testConnection(credentials = null) {
+    return this.client.testConnection(credentials);
   }
 
   async getDIDs() {
