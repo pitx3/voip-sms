@@ -10,7 +10,7 @@ export default class RealVoipMsClient extends VoipMsClient {
 
   async testConnection(credentials = null) {
     const creds = credentials || await getCredentials();
-    
+
     if (!creds) {
       return {
         success: false,
@@ -20,12 +20,18 @@ export default class RealVoipMsClient extends VoipMsClient {
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
-    
+
     try {
-      const response = await fetch(
-        `${API_BASE_URL}?method=getIP&api_username=${encodeURIComponent(creds.username)}&api_password=${encodeURIComponent(creds.password)}`,
-        { signal: controller.signal }
-      );
+      const formData = new FormData();
+      formData.append('method', 'getIP');
+      formData.append('api_username', creds.username);
+      formData.append('api_password', creds.password);
+
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
 
       clearTimeout(timeoutId);
       const result = await response.json();
@@ -56,12 +62,43 @@ export default class RealVoipMsClient extends VoipMsClient {
     }
   }
 
+  async getDIDs(credentials = null) {
+    const creds = credentials || await getCredentials();
 
+    if (!creds) {
+      throw new Error('No credentials found');
+    }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
-  async getDIDs() {
-    // TODO: Implement
-    throw new Error('Method getDIDs() not yet implemented');
+    try {
+      const formData = new FormData();
+      formData.append('method', 'getDIDsInfo');
+      formData.append('api_username', creds.username);
+      formData.append('api_password', creds.password);
+
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        return result.dids;
+      } else {
+        throw new Error(result.message || 'Failed to get DIDs');
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out (30s)');
+      }
+      throw error;
+    }
   }
 
   async getMessages(options = {}) {

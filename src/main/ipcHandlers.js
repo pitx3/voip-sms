@@ -37,7 +37,8 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
 
   // Voip.ms Operations
   ipcMain.handle('get-dids-voipms', async () => {
-    return voipMsService.getDIDs();
+    const dids = await voipMsService.getDIDs();
+    return { dids };
   });
 
   ipcMain.handle('fetch-messages-voipms', async (event, options) => {
@@ -56,11 +57,11 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
 
   ipcMain.handle('test-credentials', async (event, { username, password }) => {
     console.log('[IPC] test-credentials called with username:', username);
-    
+
     // Call VoipMsService with the provided credentials
     console.log('[IPC] Calling voipMsService.testConnection()...');
     const result = await voipMsService.testConnection({ username, password });
-    
+
     console.log('[IPC] Result received:', result);
     return result;
   });
@@ -68,10 +69,10 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   ipcMain.handle('save-credentials', async (event, { username, password }) => {
     try {
       await saveCredentials(username, password);
-      
+
       // Signal that credentials were saved
       appEvents.emit('credentials-saved');
-      
+
       return {
         success: true,
         message: 'Credentials saved'
@@ -85,15 +86,15 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   });
 
   ipcMain.handle('delete-credentials', async () => {
-  try {
-    await deleteCredentials();
-    // Signal that credentials were deleted - switch to credentials window
-    appEvents.emit('credentials-deleted');
-    return { success: true };
-  } catch (error) {
-    return { success: false, message: error.message };
-  }
-});
+    try {
+      await deleteCredentials();
+      // Signal that credentials were deleted - switch to credentials window
+      appEvents.emit('credentials-deleted');
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  });
 
   // Logging
   ipcMain.on('log-message', (event, message) => {

@@ -1,16 +1,26 @@
 // src/main/voipms/VoipMsService.js
 
 export class VoipMsService {
-  constructor(voipMsClient) {
+  constructor(voipMsClient, database) {
     this.client = voipMsClient;
+    this.database = database;
   }
 
   async testConnection(credentials = null) {
     return this.client.testConnection(credentials);
   }
 
-  async getDIDs() {
-    return this.client.getDIDs();
+  async getDIDs(credentials = null) {
+    // Fetch from API
+    const dids = await this.client.getDIDs(credentials);
+
+    // Sync to database
+    if (this.database) {
+      this.database.syncAccounts(dids);
+    }
+
+    // Return for UI
+    return dids;
   }
 
   async getMessages(options = {}) {

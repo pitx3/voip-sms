@@ -24,14 +24,14 @@ async function renderConversationList() {
     const itemEl = document.createElement('div');
     itemEl.className = `conversation-item ${conv.id === selectedConversationId ? 'selected' : ''}`;
     itemEl.dataset.id = conv.id;
-    
+
     const displayName = conv.contact_name || formatPhoneNumber(conv.contact_number);
-    
+
     itemEl.innerHTML = `
       <div class="contact-name">${displayName}</div>
       <div class="last-message">${conv.last_message_text || ''}</div>
     `;
-    
+
     itemEl.addEventListener('click', () => selectConversation(conv.id));
     listEl.appendChild(itemEl);
   });
@@ -40,24 +40,24 @@ async function renderConversationList() {
 async function renderMessages(conversationId) {
   const listEl = document.getElementById('message-list');
   const headerEl = document.getElementById('message-thread-header');
-  
+
   const conversations = await getConversations();
   const conv = conversations.find(c => c.id === conversationId);
   if (!conv) return;
-  
+
   const displayName = conv.contact_name || formatPhoneNumber(conv.contact_number);
   const displayNumber = formatPhoneNumber(conv.contact_number);
-  
+
   if (conv.contact_name) {
     headerEl.querySelector('.contact-name').textContent = `${displayName} - ${displayNumber}`;
   } else {
     headerEl.querySelector('.contact-name').textContent = displayNumber;
   }
-  
+
   listEl.innerHTML = '';
-  
+
   currentMessages = await getMessages(conversationId);
-  
+
   currentMessages.forEach(msg => {
     const msgEl = document.createElement('div');
     msgEl.className = `message-item ${msg.direction}`;
@@ -67,7 +67,7 @@ async function renderMessages(conversationId) {
     `;
     listEl.appendChild(msgEl);
   });
-  
+
   // Scroll to bottom
   listEl.scrollTop = listEl.scrollHeight;
 }
@@ -87,9 +87,9 @@ async function updateStatusBar() {
     hour: '2-digit',
     minute: '2-digit'
   });
-  
+
   document.getElementById('status-text').textContent = `Last checked: ${timestamp}`;
-  
+
   const conversations = await getConversations();
   const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
   document.getElementById('unread-count').textContent = `${totalUnread} unread`;
@@ -100,9 +100,9 @@ async function updateStatusBar() {
 async function handleSend() {
   const inputEl = document.getElementById('message-input');
   const content = inputEl.value.trim();
-  
+
   if (!content || !selectedConversationId) return;
-  
+
   await sendMessage(selectedConversationId, content);
   inputEl.value = '';
   await renderMessages(selectedConversationId);
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   await renderConversationList();
   await updateStatusBar();
-  
+
   // Select first conversation by default
   const conversations = await getConversations();
   if (conversations.length > 0) {
@@ -140,13 +140,14 @@ const newConversationBtn = document.getElementById('new-conversation-btn');
 if (newConversationBtn) {
   newConversationBtn.addEventListener('click', async () => {
     try {
+      // TODO: Change this to get from the database, not the API
       const result = await window.electronAPI.getDIDsVoipms();
-      
+
       if (!result.dids || result.dids.length === 0) {
         alert('No DIDs available. Please check your Voip.ms account.');
         return;
       }
-      
+
       showNewConversationDialog({
         dids: result.dids,
         onConfirm: (did, phoneNumber) => {
@@ -169,7 +170,7 @@ const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
     const confirmed = confirm('Are you sure you want to logout? You will need to re-enter your credentials.');
-    
+
     if (confirmed) {
       try {
         await window.electronAPI.deleteCredentials();

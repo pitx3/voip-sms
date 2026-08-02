@@ -1,7 +1,7 @@
-// tests/integration/unsafe/voipms-connection-unsafe.test.js
+// tests/integration/unsafe/voipms-connection.test.js
 
 import { describe, it, expect, skip } from 'vitest';
-import RealVoipMsClient from '../../../src/main/voipms/RealVoipMsClient.js';
+import RealVoipMsClient from '../../src/main/voipms/RealVoipMsClient.js';
 
 const API_TEST_TIMEOUT = 20000; // 20 seconds as voip.ms api can be slow
 const hasCredentials = process.env.VOIPMS_API_USERNAME && process.env.VOIPMS_API_PASSWORD;

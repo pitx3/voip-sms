@@ -70,8 +70,9 @@ async function getVoipMsClient() {
 // --- Voip.ms Service ---
 async function getVoipMsService() {
   const client = await getVoipMsClient();
+  const db = await getDatabase();
   const { VoipMsService } = await import('./services/VoipMsService.js');
-  return new VoipMsService(client);
+  return new VoipMsService(client, db);
 }
 
 // --- Mock Status (for UI banner) ---

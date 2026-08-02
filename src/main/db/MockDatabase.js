@@ -46,6 +46,19 @@ class MockDatabase {
     this.accounts.splice(idx, 1);
   }
 
+  syncAccounts(didsFromVoipms) {
+    // In mock mode, just store the DIDs in memory
+    // This simulates the sync without actual persistence
+    this._mockAccounts = didsFromVoipms.map(did => ({
+      id: Math.random().toString(36).substr(2, 9),
+      ...did,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
+
+    console.log(`[MockDatabase] Synced ${this._mockAccounts.length} accounts`);
+  }
+
   // Conversations
   getConversations(filters = {}) {
     let results = this.conversations.filter(c => !c.is_deleted && !c.is_archived);

@@ -1,6 +1,6 @@
 // tests/unit/voipms/VoipMsService.test.js
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VoipMsService } from '../../../src/main/services/VoipMsService.js';
 import MockVoipMsClient from '../../../src/main/voipms/MockVoipMsClient.js';
 
@@ -23,9 +23,33 @@ describe('VoipMsService', () => {
   describe('getDIDs()', () => {
     it('delegates to client and returns DIDs', async () => {
       const result = await service.getDIDs();
-      expect(result.status).toBe('success');
-      expect(result.dids).toBeInstanceOf(Array);
-      expect(result.dids.length).toBeGreaterThan(0);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('syncs DIDs to database when database is present', async () => {
+      const mockDatabase = {
+        syncAccounts: vi.fn(),
+        init: vi.fn(),
+        close: vi.fn(),
+        getAccounts: vi.fn(),
+        addAccount: vi.fn(),
+        updateAccount: vi.fn(),
+        deleteAccount: vi.fn()
+      };
+
+      const serviceWithDb = new VoipMsService(mockClient, mockDatabase);
+      const result = await serviceWithDb.getDIDs();
+
+      expect(mockDatabase.syncAccounts).toHaveBeenCalledWith(result);
+    });
+
+    it('works without database (mock mode)', async () => {
+      const serviceWithoutDb = new VoipMsService(mockClient, null);
+      const result = await serviceWithoutDb.getDIDs();
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 

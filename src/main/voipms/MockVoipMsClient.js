@@ -56,8 +56,12 @@ export default class MockVoipMsClient extends VoipMsClient {
     return { status: 'success' };
   }
 
+  // async getDIDs() {
+  //   return { status: 'success', dids: this._mockDids };
+  // }
+
   async getDIDs() {
-    return { status: 'success', dids: this._mockDids };
+    return this._mockDids;
   }
 
   async getMessages(options = {}) {
