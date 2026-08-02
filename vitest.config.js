@@ -1,9 +1,11 @@
+// vitest.config.js
+
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
     environment: 'jsdom',
-    include: ['**/tests/**/*.test.js', '**/tests/**/*-test.js'],
+    include: ['tests/**/*.test.js', 'tests/**/*-test.js'],
     verbose: true,
     globals: true
   }

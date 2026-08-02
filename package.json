@@ -6,9 +6,13 @@
   "main": "src/main/index.js",
   "scripts": {
     "dev": "NODE_ENV=development electron .",
+    "live-api": "NODE_ENV=development USE_MOCK_VOIPMS=false electron .",
+    "live-db": "NODE_ENV=development USE_MOCK_DB=false electron .",
     "start": "electron .",
-    "test": "vitest",
-    "test:watch": "jest --watch",
+    "test": "vitest tests/unit",
+    "test-all": "vitest --exclude 'tests/integration/unsafe/'",
+    "test-intg": "vitest tests/integration/ --exclude 'tests/integration/unsafe/'",
+    "test-unsafe": "vitest tests/integration/unsafe/",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "postinstall": "npm run rebuild"
   },

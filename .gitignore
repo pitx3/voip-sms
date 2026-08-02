@@ -32,3 +32,6 @@ attachments/
 .idea/
 *.swp
 *.swo
+
+# Test credentials (never commit!)
+tests/integration/unsafe/.env

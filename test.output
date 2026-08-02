@@ -1,0 +1,24 @@
+
+> voipms-sms-desktop@0.1.0 test-unsafe
+> vitest tests/integration/unsafe/
+
+
+[1m[30m[44m DEV [49m[39m[22m [34mv4.1.10 [39m[90m/home/user/Projects/voip-sms[39m
+
+ [31m❯[39m tests/integration/unsafe/voipms-connection-unsafe.test.js [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m1 skipped[39m[2m)[22m[33m 5010[2mms[22m[39m
+     [2m[90m↓[39m[22m should connect with valid credentials
+[31m     [31m×[31m should fail with invalid credentials[39m[33m 5008[2mms[22m[39m
+[90mstdout[2m | tests/integration/unsafe/example-unsafe.test.js[2m > [22m[2mUNSAFE TEST - Should only run with the test-unsafe command[2m > [22m[2mshould only run with npm test-unsafe
+[22m[39m🚨 UNSAFE TEST RAN - This should only happen with test-unsafe command
+
+ [32m✓[39m tests/integration/unsafe/example-unsafe.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (3)[39m
+[2m   Start at [22m 22:30:07
+[2m   Duration [22m 7.58s[2m (transform 106ms, setup 0ms, import 183ms, tests 5.02s, environment 1.92s)[22m
+
+[1m[30m[41m FAIL [49m[39m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[31mCancelling test run. Press CTRL+c again to exit forcefully.
+[39m
