@@ -6,17 +6,23 @@ export function showNewConversationDialog({ dids, onConfirm, onCancel }) {
   dialog.innerHTML = `
     <div class="modal">
       <h3>New Conversation</h3>
+      <div id="dialog-status-message"></div>
       
       <label class="modal-label">
         DID (From):
-        <select id="dialog-did-select">
-          ${dids.map(d => `<option value="${d.did}">${d.did} - ${d.description || ''}</option>`).join('')}
-        </select>
+        <div class="did-picker-row">
+          <button id="refresh-dids-btn" class="icon-btn" title="Refresh DIDs from Voip.ms">
+            <img src="assets/refresh-24.png" alt="Refresh" />
+          </button>
+          <select id="dialog-did-select">
+            ${dids.map(d => `<option value="${d.did}">${d.did} - ${d.description || ''}</option>`).join('')}
+          </select>
+        </div>
       </label>
       
       <label class="modal-label">
         Phone Number (To):
-        <input type="tel" id="dialog-phone-input" placeholder="5551234567" />
+        <input type="tel" id="dialog-phone-input" placeholder="+1234567890" />
       </label>
       
       <div class="contact-list">
@@ -29,46 +35,81 @@ export function showNewConversationDialog({ dids, onConfirm, onCancel }) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(dialog);
-  
+
+  const refreshBtn = dialog.querySelector('#refresh-dids-btn');
   const didSelect = dialog.querySelector('#dialog-did-select');
-  const phoneInput = dialog.querySelector('#dialog-phone-input');
+  const statusMessage = dialog.querySelector('#dialog-status-message');
   const okBtn = dialog.querySelector('.btn-ok');
   const cancelBtn = dialog.querySelector('.btn-cancel');
-  
-  function cleanup() {
-    dialog.remove();
+  const phoneInput = dialog.querySelector('#dialog-phone-input');
+
+  function showLoading() {
+    refreshBtn.disabled = true;
+    statusMessage.textContent = 'Fetching DIDs...';
+    statusMessage.className = 'status-loading';
   }
-  
-  cancelBtn.addEventListener('click', () => {
-    cleanup();
-    if (onCancel) onCancel();
+
+  function hideLoading() {
+    refreshBtn.disabled = false;
+    statusMessage.textContent = '';
+    statusMessage.className = '';
+  }
+
+  function showError(message) {
+    statusMessage.textContent = message;
+    statusMessage.className = 'status-error';
+  }
+
+  refreshBtn.addEventListener('click', async () => {
+    showLoading();
+    
+    try {
+      const result = await window.electronAPI.getDidsVoipms();
+      
+      if (result.dids && result.dids.length > 0) {
+        // Clear and repopulate dropdown
+        didSelect.innerHTML = '';
+        result.dids.forEach(d => {
+          const option = document.createElement('option');
+          option.value = d.did;
+          option.textContent = `${d.did} - ${d.description || ''}`;
+          didSelect.appendChild(option);
+        });
+        hideLoading();
+      } else {
+        showError('No DIDs found.');
+      }
+    } catch (error) {
+      showError('Couldn\'t refresh DIDs.');
+    }
   });
-  
+
   okBtn.addEventListener('click', () => {
-    const did = didSelect.value;
+    const selectedDid = didSelect.value;
     const phoneNumber = phoneInput.value.trim();
     
     if (!phoneNumber) {
-      phoneInput.focus();
+      alert('Please enter a phone number.');
       return;
     }
     
-    cleanup();
-    if (onConfirm) onConfirm(did, phoneNumber);
+    dialog.remove();
+    onConfirm(selectedDid, phoneNumber);
   });
-  
-  // Close on Escape key
-  function handleEscape(e) {
-    if (e.key === 'Escape') {
-      document.removeEventListener('keydown', handleEscape);
-      cleanup();
-      if (onCancel) onCancel();
+
+  cancelBtn.addEventListener('click', () => {
+    dialog.remove();
+    onCancel();
+  });
+
+  phoneInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      okBtn.click();
     }
-  }
-  document.addEventListener('keydown', handleEscape);
-  
-  // Focus phone input
+  });
+
+  // Focus the phone input
   phoneInput.focus();
 }
