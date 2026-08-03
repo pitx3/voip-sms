@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
   <title>voip.ms SMS</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <!-- Mock Data Banner -->
   <div id="mock-banner" class="mock-banner" style="display: none;">
@@ -18,7 +21,12 @@
     <div class="conversation-list-pane">
       <div class="conversation-list-header">
         <h2>Conversations</h2>
-        <button class="new-conversation-btn" id="new-conversation-btn" title="New Conversation">+</button>
+        <div class="header-actions">
+          <button class="toolbar-btn" id="sync-messages-btn" title="Sync Messages">
+            <img src="assets/refresh-24.png" alt="Refresh" />
+          </button>
+          <button class="toolbar-btn" id="new-conversation-btn" title="New Conversation">+</button>
+        </div>
       </div>
       <div class="conversation-list" id="conversation-list">
         <!-- Conversations will be inserted here -->
@@ -33,7 +41,7 @@
           <img src="assets/logout-24.png" alt="Logout" width="24" height="24" />
         </button>
       </div>
-      
+
       <div class="message-list" id="message-list">
         <!-- Messages will be inserted here -->
       </div>
@@ -53,4 +61,5 @@
 
   <script src="renderer.js" type="module"></script>
 </body>
+
 </html>
