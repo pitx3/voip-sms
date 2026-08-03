@@ -2,9 +2,9 @@
 
 /**
  * Abstract database interface defining the contract for database implementations.
- * 
- * NOT CURRENTLY USED/ENFORCED (August 2, 2026)
- * 
+ *  
+ * NOT CURRENTLY ENFORCED (August 2, 2026)
+ * Classes extend this but TypeScript would be better for true interface enforcement.
  */
 export class Database {
   /**
@@ -24,55 +24,55 @@ export class Database {
   }
 
   // =========================================
-  // Accounts (DIDs)
+  // DIDs
   // =========================================
 
   /**
-   * Get all accounts (DIDs)
-   * @returns {Promise<Array>} Array of account objects
+   * Get all DIDs (phone numbers)
+   * @returns {Promise<Array>} Array of DID objects
    */
-  getAccounts() {
-    throw new Error('getAccounts() must be implemented');
+  getDids() {
+    throw new Error('getDids() must be implemented');
   }
 
   /**
-   * Add a new account
-   * @param {Object} account - Account data
-   * @returns {Promise<Object>} Created account with ID
+   * Add a new DID
+   * @param {Object} did - DID data
+   * @returns {Promise<Object>} Created DID with ID
    */
-  addAccount(account) {
-    throw new Error('addAccount() must be implemented');
+  addDid(did) {
+    throw new Error('addDid() must be implemented');
   }
 
   /**
-   * Update an existing account
-   * @param {number} id - Account ID
+   * Update an existing DID
+   * @param {number} id - DID ID
    * @param {Object} updates - Fields to update
-   * @returns {Promise<Object|null>} Updated account or null if not found
+   * @returns {Promise<Object|null>} Updated DID or null if not found
    */
-  updateAccount(id, updates) {
-    throw new Error('updateAccount() must be implemented');
+  updateDid(id, updates) {
+    throw new Error('updateDid() must be implemented');
   }
 
   /**
-   * Delete an account
-   * @param {number} id - Account ID
+   * Delete a DID
+   * @param {number} id - DID ID
    * @returns {Promise<void>}
    */
-  deleteAccount(id) {
-    throw new Error('deleteAccount() must be implemented');
+  deleteDid(id) {
+    throw new Error('deleteDid() must be implemented');
   }
 
   /**
-   * Sync accounts with Voip.ms DIDs
+   * Sync DIDs with Voip.ms API
    * - Add new DIDs that don't exist locally
    * - Update existing DIDs
    * - Delete DIDs that no longer exist on Voip.ms
    * @param {Array} didsFromVoipms - Array of DID objects from Voip.ms API
    * @returns {Promise<void>}
    */
-  syncAccounts(didsFromVoipms) {
-    throw new Error('syncAccounts() must be implemented');
+  syncDids(didsFromVoipms) {
+    throw new Error('syncDids() must be implemented');
   }
 
   // =========================================
@@ -87,7 +87,7 @@ export class Database {
     throw new Error('getConversationById() must be implemented');
   }
 
-  getOrCreateConversation(did, contact) {
+  getOrCreateConversation(didId, contact) {
     throw new Error('getOrCreateConversation() must be implemented');
   }
 
@@ -135,7 +135,7 @@ export class Database {
     throw new Error('logSentMessage() must be implemented');
   }
 
-  getSentCountToday(did) {
+  getSentCountToday(didId) {
     throw new Error('getSentCountToday() must be implemented');
   }
 }
