@@ -10,9 +10,9 @@ export class VoipMsService {
     return this.client.testConnection(credentials);
   }
 
-  async getDIDs(credentials = null) {
+  async getDids(credentials = null) {
     // Fetch from API
-    const dids = await this.client.getDIDs(credentials);
+    const dids = await this.client.getDids(credentials);
 
     // Sync to database
     if (this.database) {

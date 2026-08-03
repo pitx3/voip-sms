@@ -20,9 +20,9 @@ describe('VoipMsService', () => {
     });
   });
 
-  describe('getDIDs()', () => {
+  describe('getDids()', () => {
     it('delegates to client and returns DIDs', async () => {
-      const result = await service.getDIDs();
+      const result = await service.getDids();
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
     });
@@ -39,14 +39,14 @@ describe('VoipMsService', () => {
       };
 
       const serviceWithDb = new VoipMsService(mockClient, mockDatabase);
-      const result = await serviceWithDb.getDIDs();
+      const result = await serviceWithDb.getDids();
 
       expect(mockDatabase.syncDids).toHaveBeenCalledWith(result);
     });
 
     it('works without database (mock mode)', async () => {
       const serviceWithoutDb = new VoipMsService(mockClient, null);
-      const result = await serviceWithoutDb.getDIDs();
+      const result = await serviceWithoutDb.getDids();
 
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);

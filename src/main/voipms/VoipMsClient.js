@@ -26,8 +26,8 @@ export class VoipMsClient {
    * @property {string} sms_enabled - Whether SMS is enabled ("1" or "0")
    * @property {number} mms_available - Whether MMS is available (1 or 0)
    */
-  async getDIDs() {
-    throw new Error('Method getDIDs() must be implemented');
+  async getDids() {
+    throw new Error('Method getDids() must be implemented');
   }
 
   /**

@@ -37,7 +37,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
 
   // Voip.ms Operations
   ipcMain.handle('get-dids-voipms', async () => {
-    const dids = await voipMsService.getDIDs();
+    const dids = await voipMsService.getDids();
     return { dids };
   });
 

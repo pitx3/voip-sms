@@ -62,7 +62,7 @@ export default class RealVoipMsClient extends VoipMsClient {
     }
   }
 
-  async getDIDs(credentials = null) {
+  async getDids(credentials = null) {
     const creds = credentials || await getCredentials();
 
     if (!creds) {
@@ -74,7 +74,7 @@ export default class RealVoipMsClient extends VoipMsClient {
 
     try {
       const formData = new FormData();
-      formData.append('method', 'getDIDsInfo');
+      formData.append('method', 'getDidsInfo');
       formData.append('api_username', creds.username);
       formData.append('api_password', creds.password);
 

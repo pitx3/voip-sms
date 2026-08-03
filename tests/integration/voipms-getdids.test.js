@@ -6,16 +6,16 @@ import RealVoipMsClient from '../../src/main/voipms/RealVoipMsClient.js';
 const API_TEST_TIMEOUT = 20000; // 20 seconds as voip.ms api can be slow
 const hasCredentials = process.env.VOIPMS_API_USERNAME && process.env.VOIPMS_API_PASSWORD;
 
-describe('RealVoipMsClient.getDIDs()', () => {
+describe('RealVoipMsClient.getDids()', () => {
   it.skipIf(!hasCredentials)('should return array of DIDs for valid credentials', async () => {
     const username = process.env.VOIPMS_API_USERNAME;
     const password = process.env.VOIPMS_API_PASSWORD;
 
     const client = new RealVoipMsClient();
-    const dids = await client.getDIDs({ username, password });
+    const dids = await client.getDids({ username, password });
 
     expect(Array.isArray(dids)).toBe(true);
-    console.log(`✅ getDIDs() returned ${dids.length} DID(s)`);
+    console.log(`✅ getDids() returned ${dids.length} DID(s)`);
   }, API_TEST_TIMEOUT);
 
   it.skipIf(!hasCredentials)('should return DIDs with expected fields', async () => {
@@ -23,7 +23,7 @@ describe('RealVoipMsClient.getDIDs()', () => {
     const password = process.env.VOIPMS_API_PASSWORD;
 
     const client = new RealVoipMsClient();
-    const dids = await client.getDIDs({ username, password });
+    const dids = await client.getDids({ username, password });
 
     if (dids.length > 0) {
       const firstDid = dids[0];

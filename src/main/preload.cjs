@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendMessage: (conversationId, content) => ipcRenderer.invoke('send-message', conversationId, content),
   
   // Voip.ms Operations
-  getDIDsVoipms: () => ipcRenderer.invoke('get-dids-voipms'),
+  getDidsVoipms: () => ipcRenderer.invoke('get-dids-voipms'),
   fetchMessagesVoipms: (options) => ipcRenderer.invoke('fetch-messages-voipms'),
   sendMessageVoipms: (params) => ipcRenderer.invoke('send-message-voipms'),
   

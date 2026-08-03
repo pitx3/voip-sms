@@ -141,7 +141,7 @@ if (newConversationBtn) {
   newConversationBtn.addEventListener('click', async () => {
     try {
       // TODO: Change this to get from the database, not the API
-      const result = await window.electronAPI.getDIDsVoipms();
+      const result = await window.electronAPI.getDidsVoipms();
 
       if (!result.dids || result.dids.length === 0) {
         alert('No DIDs available. Please check your Voip.ms account.');
