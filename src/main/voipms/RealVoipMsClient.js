@@ -103,8 +103,58 @@ export default class RealVoipMsClient extends VoipMsClient {
   }
 
   async getMessages(options = {}) {
-    // TODO: Implement
-    throw new Error('Method getMessages() not yet implemented');
+    const creds = options.credentials || await getCredentials();
+
+    if (!creds) {
+      throw new Error('No credentials found');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+    try {
+      const formData = new FormData();
+      formData.append('method', 'getMMS');
+      formData.append('api_username', creds.username);
+      formData.append('api_password', creds.password);
+      formData.append('all_messages', '1');
+
+      // Optional parameters
+      if (options.from) {
+        formData.append('from', options.from);
+      }
+      if (options.to) {
+        formData.append('to', options.to);
+      }
+      if (options.timezone) {
+        formData.append('timezone', options.timezone);
+      }
+      if (options.limit) {
+        formData.append('limit', options.limit);
+      }
+
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        return result.sms || [];
+      } else {
+        console.log('API error: ', result);
+        throw new Error(result.message || 'Failed to get messages');
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out (30s)');
+      }
+      throw error;
+    }
   }
 
   async sendMessage(params) {
