@@ -53,7 +53,7 @@ export default class MockVoipMsClient extends VoipMsClient {
   }
 
   async testConnection() {
-    return { status: 'success' };
+    return { success: true, message: 'Connection successful' };
   }
 
   async getDids() {

@@ -74,7 +74,7 @@ export default class RealVoipMsClient extends VoipMsClient {
 
     try {
       const formData = new FormData();
-      formData.append('method', 'getDidsInfo');
+      formData.append('method', 'getDIDsInfo');
       formData.append('api_username', creds.username);
       formData.append('api_password', creds.password);
 
@@ -90,6 +90,7 @@ export default class RealVoipMsClient extends VoipMsClient {
       if (result.status === 'success') {
         return result.dids;
       } else {
+        console.log('API error: ', result);
         throw new Error(result.message || 'Failed to get DIDs');
       }
     } catch (error) {

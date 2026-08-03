@@ -16,7 +16,7 @@ describe('VoipMsService', () => {
   describe('testConnection()', () => {
     it('delegates to client and returns result', async () => {
       const result = await service.testConnection();
-      expect(result.status).toBe('success');
+      expect(result.success).toBe(true);
     });
   });
 

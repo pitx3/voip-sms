@@ -140,11 +140,11 @@ const newConversationBtn = document.getElementById('new-conversation-btn');
 if (newConversationBtn) {
   newConversationBtn.addEventListener('click', async () => {
     try {
-      // TODO: Change this to get from the database, not the API
-      const result = await window.electronAPI.getDidsVoipms();
+      // Fast path: Read DIDs from local database
+      const result = await window.electronAPI.getDidsDb();
 
       if (!result.dids || result.dids.length === 0) {
-        alert('No DIDs available. Please check your Voip.ms account.');
+        alert('No DIDs available. Click menu to refresh from Voip.ms.');
         return;
       }
 

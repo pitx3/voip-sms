@@ -8,7 +8,28 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // Mock status (for banner)
   ipcMain.handle('get-mock-status', async () => getMockStatus());
 
+  // =========================================
+  // DIDs - Fast Path (Database)
+  // =========================================
+  
+  ipcMain.handle('get-dids-db', async () => {
+    const dids = db.getDids();
+    return { dids };
+  });
+
+  // =========================================
+  // DIDs - Slow Path (Voip.ms API Sync)
+  // =========================================
+  
+  ipcMain.handle('get-dids-voipms', async () => {
+    const dids = await voipMsService.getDids();
+    return { dids };
+  });
+
+  // =========================================
   // Conversations (DB)
+  // =========================================
+  
   ipcMain.handle('get-conversations', async (event, filters) => {
     return db.getConversations(filters);
   });
@@ -17,12 +38,18 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     return db.getConversationById(id);
   });
 
+  // =========================================
   // Messages (DB)
+  // =========================================
+  
   ipcMain.handle('get-messages', async (event, conversationId, options) => {
     return db.getMessages(conversationId, options);
   });
 
-  // Send message (DB - for now)
+  // =========================================
+  // Send Message (DB - for now)
+  // =========================================
+  
   ipcMain.handle('send-message', async (event, conversationId, content) => {
     const message = db.addMessage({
       conversation_id: conversationId,
@@ -35,12 +62,10 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     return message;
   });
 
-  // Voip.ms Operations
-  ipcMain.handle('get-dids-voipms', async () => {
-    const dids = await voipMsService.getDids();
-    return { dids };
-  });
-
+  // =========================================
+  // Voip.ms Operations (API Sync)
+  // =========================================
+  
   ipcMain.handle('fetch-messages-voipms', async (event, options) => {
     return voipMsService.getMessages(options);
   });
@@ -49,7 +74,10 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     return voipMsService.sendMessage(params);
   });
 
-  // Credentials (using safeStorage + encrypted file)
+  // =========================================
+  // Credentials
+  // =========================================
+  
   ipcMain.handle('has-credentials', async () => {
     const exists = await checkCredentials();
     return { hasCredentials: exists };
@@ -58,8 +86,6 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   ipcMain.handle('test-credentials', async (event, { username, password }) => {
     console.log('[IPC] test-credentials called with username:', username);
 
-    // Call VoipMsService with the provided credentials
-    console.log('[IPC] Calling voipMsService.testConnection()...');
     const result = await voipMsService.testConnection({ username, password });
 
     console.log('[IPC] Result received:', result);
@@ -69,8 +95,6 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   ipcMain.handle('save-credentials', async (event, { username, password }) => {
     try {
       await saveCredentials(username, password);
-
-      // Signal that credentials were saved
       appEvents.emit('credentials-saved');
 
       return {
@@ -88,7 +112,6 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   ipcMain.handle('delete-credentials', async () => {
     try {
       await deleteCredentials();
-      // Signal that credentials were deleted - switch to credentials window
       appEvents.emit('credentials-deleted');
       return { success: true };
     } catch (error) {
@@ -96,7 +119,10 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     }
   });
 
+  // =========================================
   // Logging
+  // =========================================
+  
   ipcMain.on('log-message', (event, message) => {
     console.log('[Renderer says]:', message);
   });
