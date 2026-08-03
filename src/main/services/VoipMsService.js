@@ -16,7 +16,7 @@ export class VoipMsService {
 
     // Sync to database
     if (this.database) {
-      this.database.syncAccounts(dids);
+      this.database.syncDids(dids);
     }
 
     // Return for UI

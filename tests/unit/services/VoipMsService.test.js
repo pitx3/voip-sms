@@ -29,19 +29,19 @@ describe('VoipMsService', () => {
 
     it('syncs DIDs to database when database is present', async () => {
       const mockDatabase = {
-        syncAccounts: vi.fn(),
+        syncDids: vi.fn(),
         init: vi.fn(),
         close: vi.fn(),
-        getAccounts: vi.fn(),
-        addAccount: vi.fn(),
-        updateAccount: vi.fn(),
-        deleteAccount: vi.fn()
+        getDids: vi.fn(),
+        addDid: vi.fn(),
+        updateDid: vi.fn(),
+        deleteDid: vi.fn()
       };
 
       const serviceWithDb = new VoipMsService(mockClient, mockDatabase);
       const result = await serviceWithDb.getDIDs();
 
-      expect(mockDatabase.syncAccounts).toHaveBeenCalledWith(result);
+      expect(mockDatabase.syncDids).toHaveBeenCalledWith(result);
     });
 
     it('works without database (mock mode)', async () => {

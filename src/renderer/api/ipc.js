@@ -8,7 +8,7 @@ export async function getMockStatus() {
 
 /**
  * Get all conversations
- * @param {Object} filters - Optional filters (e.g., { account_id: 1 })
+ * @param {Object} filters - Optional filters (e.g., { did_id: 1 })
  * @returns {Promise<Array>}
  */
 export async function getConversations(filters = {}) {

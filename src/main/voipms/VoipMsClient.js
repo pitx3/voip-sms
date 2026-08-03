@@ -18,7 +18,7 @@ export class VoipMsClient {
   }
 
   /**
-   * Get all DIDs (phone numbers) for the account
+   * Get all DIDs (phone numbers)
    * @param {Object} [credentials] - Optional credentials (uses stored if not provided)
    * @returns {Promise<Array>} Array of DID objects
    * @property {string} did - Phone number

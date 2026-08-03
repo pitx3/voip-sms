@@ -36,9 +36,9 @@ describe('IPC API', () => {
       const mockConversations = [{ id: 1, contact_name: 'Test' }];
       window.electronAPI.getConversations.mockResolvedValue(mockConversations);
 
-      const result = await getConversations({ account_id: 1 });
+      const result = await getConversations({ did_id: 1 });
 
-      expect(window.electronAPI.getConversations).toHaveBeenCalledWith({ account_id: 1 });
+      expect(window.electronAPI.getConversations).toHaveBeenCalledWith({ did_id: 1 });
       expect(result).toEqual(mockConversations);
     });
 

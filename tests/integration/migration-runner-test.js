@@ -38,7 +38,7 @@ describe('MigrationRunner', () => {
     const tableNames = tables.map(t => t.name);
     
     expect(tableNames).toContain('schema_migrations');
-    expect(tableNames).toContain('accounts');
+    expect(tableNames).toContain('dids');
     expect(tableNames).toContain('conversations');
     expect(tableNames).toContain('messages');
     expect(tableNames).toContain('attachments');

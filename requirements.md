@@ -130,8 +130,8 @@ A native Linux desktop SMS/MMS application for Voip.ms that provides a proper me
 ## Database Schema
 
 ```sql
--- Accounts (your DIDs)
-CREATE TABLE accounts (
+-- Dids (your DIDs)
+CREATE TABLE dids (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     did TEXT NOT NULL UNIQUE,
     name TEXT,
@@ -146,7 +146,7 @@ CREATE TABLE accounts (
 -- Conversations
 CREATE TABLE conversations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER NOT NULL,
+    did_id INTEGER NOT NULL,
     contact_number TEXT NOT NULL,
     contact_name TEXT,
     last_message_date TEXT,
@@ -156,8 +156,8 @@ CREATE TABLE conversations (
     is_archived INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
-    UNIQUE(account_id, contact_number)
+    FOREIGN KEY (did_id) REFERENCES dids(id) ON DELETE CASCADE,
+    UNIQUE(did_id, contact_number)
 );
 
 -- Messages
@@ -196,12 +196,12 @@ CREATE TABLE attachments (
 CREATE TABLE sent_messages_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL,
-    account_id INTEGER NOT NULL,
+    did_id INTEGER NOT NULL,
     dst TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('sms', 'mms')),
     status TEXT NOT NULL,
     voipms_id TEXT,
-    FOREIGN KEY (account_id) REFERENCES accounts(id)
+    FOREIGN KEY (did_id) REFERENCES dids(id)
 );
 ```
 
@@ -217,7 +217,7 @@ CREATE TABLE sent_messages_log (
 5. Implement polling service
 
 ### Phase 2: Core Features
-6. Build DID/account management (Settings dialog)
+6. Build DID management (Settings dialog)
 7. Build conversation list (load, sort, select)
 8. Build message thread (load, infinite scroll, display)
 9. Implement read status logic (scroll-based)
