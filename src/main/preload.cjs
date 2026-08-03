@@ -25,7 +25,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // =========================================
   // Messages
   // =========================================
-  getMessages: (conversationId, options) => ipcRenderer.invoke('get-messages', conversationId, options),
+  // Messages - fast path (read from DB)
+  getMessagesDb: (options) => ipcRenderer.invoke('get-messages-db', options),
+
+  // Messages - sync from API
+  syncMessagesVoipms: () => ipcRenderer.invoke('sync-messages-voipms'),
   
   // =========================================
   // Send Message

@@ -152,4 +152,74 @@ export default class SqliteDatabase extends Database {
       }
     }
   }
+
+  // =============================================================================
+  // Messages
+  // =============================================================================
+
+  /**
+   * Sync messages to database (upsert by message_id + did_id)
+   * @param {Array} messages - Array of message objects with did_id
+   * @returns {Promise<{synced: number, new: number}>} Sync statistics
+   */
+  syncMessages(messages) {
+    let newCount = 0;
+    
+    for (const msg of messages) {
+      const result = await this.db.run(`
+        INSERT OR IGNORE INTO messages (
+          did_id, message_id, direction, contact_number,
+          message_body, timestamp, carrier_status, media_urls, is_read
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        msg.did_id,
+        msg.message_id,
+        msg.direction,
+        msg.contact_number,
+        msg.message_body,
+        msg.timestamp,
+        msg.carrier_status,
+        msg.media_urls,
+        msg.is_read
+      ]);
+      
+      if (result.changes > 0) {
+        newCount++;
+      }
+    }
+    
+    return {
+      synced: messages.length,
+      new: newCount
+    };
+  }
+
+  // =============================================================================
+  // Settings
+  // =============================================================================
+
+  /**
+   * Get a setting value by key
+   * @param {string} key - Setting key
+   * @returns {Promise<string|null>} Setting value or null if not found
+   */
+  getSetting(key) {
+    const sql = 'SELECT value FROM settings WHERE key = ?';
+    const result = await this.db.get(sql, [key]);
+    return result ? result.value : null;
+  }
+
+  /**
+   * Set a setting value (insert or update)
+   * @param {string} key - Setting key
+   * @param {string} value - Setting value
+   * @returns {Promise<void>}
+   */
+  setSetting(key, value) {
+    const sql = `
+      INSERT INTO settings (key, value) VALUES (?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `;
+    await this.db.run(sql, [key, value]);
+  }
 }

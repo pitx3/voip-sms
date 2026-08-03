@@ -24,6 +24,7 @@ export default class MockDatabase extends Database {
     ];
     this.attachments = [];
     this.sent_messages_log = [];
+    this.settings = {}; 
   }
 
   async init() { return this; }
@@ -158,6 +159,33 @@ export default class MockDatabase extends Database {
     this.messages.forEach(m => { if (m.conversation_id === conversationId) m.is_read = 1; });
   }
 
+  /**
+   * Sync messages to database (upsert by message_id + did_id)
+   * @param {Array} messages - Array of message objects with did_id
+   * @returns {Promise<{synced: number, new: number}>} Sync statistics
+   */
+  syncMessages(messages) {
+    let newCount = 0;
+
+    for (const msg of messages) {
+      const existingIndex = this.messages.findIndex(
+        m => m.message_id === msg.message_id && m.did_id === msg.did_id
+      );
+
+      if (existingIndex === -1) {
+        this.messages.push(msg);
+        newCount++;
+      } else {
+        this.messages[existingIndex] = msg;
+      }
+    }
+
+    return {
+      synced: messages.length,
+      new: newCount
+    };
+  }
+
   // =========================================
   // Attachments
   // =========================================
@@ -169,6 +197,31 @@ export default class MockDatabase extends Database {
   }
 
   getAttachmentsForMessage(messageId) { return this.attachments.filter(a => a.message_id === messageId); }
+
+
+  // =============================================================================
+  // Settings
+  // =============================================================================
+
+  /**
+   * Get a setting value by key
+   * @param {string} key - Setting key
+   * @returns {Promise<string|null>} Setting value or null if not found
+   */
+  getSetting(key) {
+    return this.settings[key] || null;
+  }
+
+  /**
+   * Set a setting value (insert or update)
+   * @param {string} key - Setting key
+   * @param {string} value - Setting value
+   * @returns {Promise<void>}
+   */
+  setSetting(key, value) {
+    console.log('settings = ', this.settings);
+    this.settings[key] = value;
+  }
 
   // =========================================
   // Sent Messages Log

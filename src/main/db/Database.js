@@ -115,6 +115,24 @@ export class Database {
     throw new Error('markMessagesRead() must be implemented');
   }
 
+  /**
+   * Sync messages to database (upsert by message_id + did_id)
+   * @param {Array} messages - Array of message objects with did_id
+   * @param {number} messages[].did_id - Foreign key to dids table
+   * @param {number} messages[].message_id - Voip.ms message ID
+   * @param {string} messages[].direction - 'inbound' or 'outbound'
+   * @param {string} messages[].contact_number - Other party's phone number
+   * @param {string} messages[].message_body - Message text
+   * @param {number} messages[].timestamp - Unix timestamp (seconds)
+   * @param {string} [messages[].carrier_status] - Delivery status
+   * @param {string} [messages[].media_urls] - JSON array of media URLs
+   * @param {number} [messages[].is_read] - Read flag (0 or 1)
+   * @returns {Promise<{synced: number, new: number}>} Sync statistics
+   */
+  syncMessages(messages) {
+    throw new Error('Method syncMessages() must be implemented');
+  }
+
   // =========================================
   // Attachments
   // =========================================
@@ -125,6 +143,29 @@ export class Database {
 
   getAttachmentsForMessage(messageId) {
     throw new Error('getAttachmentsForMessage() must be implemented');
+  }
+
+  // =========================================
+  // Settings
+  // =========================================
+
+  /**
+   * Get a setting value by key
+   * @param {string} key - Setting key (e.g., 'last_message_sync')
+   * @returns {Promise<string|null>} Setting value or null if not found
+   */
+  getSetting(key) {
+    throw new Error('Method getSetting() must be implemented');
+  }
+
+  /**
+   * Set a setting value (insert or update)
+   * @param {string} key - Setting key
+   * @param {string} value - Setting value
+   * @returns {Promise<void>}
+   */
+  setSetting(key, value) {
+    throw new Error('Method setSetting() must be implemented');
   }
 
   // =========================================

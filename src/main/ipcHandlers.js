@@ -11,7 +11,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // DIDs - Fast Path (Database)
   // =========================================
-  
+
   ipcMain.handle('get-dids-db', async () => {
     const dids = db.getDids();
     return { dids };
@@ -20,7 +20,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // DIDs - Slow Path (Voip.ms API Sync)
   // =========================================
-  
+
   ipcMain.handle('get-dids-voipms', async () => {
     const dids = await voipMsService.getDids();
     return { dids };
@@ -29,7 +29,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // Conversations (DB)
   // =========================================
-  
+
   ipcMain.handle('get-conversations', async (event, filters) => {
     return db.getConversations(filters);
   });
@@ -41,7 +41,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // Messages (DB)
   // =========================================
-  
+
   ipcMain.handle('get-messages', async (event, conversationId, options) => {
     return db.getMessages(conversationId, options);
   });
@@ -49,7 +49,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // Send Message (DB - for now)
   // =========================================
-  
+
   ipcMain.handle('send-message', async (event, conversationId, content) => {
     const message = db.addMessage({
       conversation_id: conversationId,
@@ -65,19 +65,28 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // Voip.ms Operations (API Sync)
   // =========================================
-  
-  ipcMain.handle('fetch-messages-voipms', async (event, options) => {
-    return voipMsService.getMessages(options);
+
+  // Get messages from local database (fast path)
+  ipcMain.handle('get-messages-db', async (event, options = {}) => {
+    const messages = await database.getMessages(options);
+    return { messages };
   });
 
-  ipcMain.handle('send-message-voipms', async (event, params) => {
-    return voipMsService.sendMessage(params);
+  // Sync messages from Voip.ms API (slow path)
+  ipcMain.handle('sync-messages-voipms', async () => {
+    try {
+      const messages = await voipMsService.getMessages();
+      return { success: true, count: messages.length };
+    } catch (error) {
+      console.error('Failed to sync messages:', error);
+      return { success: false, error: error.message };
+    }
   });
 
   // =========================================
   // Credentials
   // =========================================
-  
+
   ipcMain.handle('has-credentials', async () => {
     const exists = await checkCredentials();
     return { hasCredentials: exists };
@@ -122,7 +131,7 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // =========================================
   // Logging
   // =========================================
-  
+
   ipcMain.on('log-message', (event, message) => {
     console.log('[Renderer says]:', message);
   });

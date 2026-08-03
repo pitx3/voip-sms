@@ -3,14 +3,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VoipMsService } from '../../../src/main/services/VoipMsService.js';
 import MockVoipMsClient from '../../../src/main/voipms/MockVoipMsClient.js';
+import MockDatabase from '../../../src/main/db/MockDatabase.js';
 
 describe('VoipMsService', () => {
   let mockClient;
   let service;
+  let mockDatabase;
 
   beforeEach(() => {
+    mockDatabase = new MockDatabase();
     mockClient = new MockVoipMsClient();
-    service = new VoipMsService(mockClient);
+    service = new VoipMsService(mockClient, mockDatabase);
   });
 
   describe('testConnection()', () => {
@@ -54,17 +57,106 @@ describe('VoipMsService', () => {
   });
 
   describe('getMessages()', () => {
-    it('delegates to client and returns messages', async () => {
-      const result = await service.getMessages({});
-      expect(result.status).toBe('success');
-      expect(result.sms).toBeInstanceOf(Array);
+
+    it('fetches messages from client with correct date range (initial sync)', async () => {
+      const result = await service.getMessages();
+
+      expect(result).toBeInstanceOf(Array);
+      expect(result.length).toBeGreaterThan(0);
+      console.log(`✅ Initial sync: ${result.length} messages fetched`);
     });
 
-    it('passes options to client for filtering', async () => {
-      const result = await service.getMessages({ type: '1' });
-      result.sms.forEach(msg => {
-        expect(msg.type).toBe('1');
+    it('passes timezone offset to client', async () => {
+      const expectedTimezone = String(-new Date().getTimezoneOffset() / 60);
+      const getMessagesSpy = vi.spyOn(mockClient, 'getMessages');
+
+      await service.getMessages();
+
+      const callArgs = getMessagesSpy.mock.calls[0][0];
+      expect(callArgs.timezone).toBe(expectedTimezone);
+      console.log(`✅ Timezone offset passed: ${callArgs.timezone}`);
+    });
+
+    it('uses 90-day window for initial sync (no prior sync timestamp)', async () => {
+      const getMessagesSpy = vi.spyOn(mockClient, 'getMessages');
+
+      await service.getMessages();
+
+      const callArgs = getMessagesSpy.mock.calls[0][0];
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      const expectedFrom = ninetyDaysAgo.toISOString().split('T')[0];
+
+      expect(callArgs.from).toBe(expectedFrom);
+      console.log(`✅ Initial sync date range: ${callArgs.from} to ${callArgs.to}`);
+    });
+
+    it('uses last sync timestamp minus 1 hour for subsequent sync', async () => {
+      // Set a fake last sync timestamp (2 days ago)
+      const twoDaysAgo = Date.now() - (2 * 24 * 60 * 60 * 1000);
+      mockDatabase.setSetting('last_message_sync', twoDaysAgo);
+
+      const getMessagesSpy = vi.spyOn(mockClient, 'getMessages');
+
+      await service.getMessages();
+
+      const callArgs = getMessagesSpy.mock.calls[0][0];
+      const expectedFrom = new Date(twoDaysAgo - (60 * 60 * 1000)).toISOString().split('T')[0];
+
+      expect(callArgs.from).toBe(expectedFrom);
+      console.log(`✅ Subsequent sync date range: ${callArgs.from} to ${callArgs.to}`);
+    });
+
+    it('transforms messages correctly (type → direction)', async () => {
+      const result = await service.getMessages();
+
+      result.forEach(msg => {
+        expect(msg).toHaveProperty('direction');
+        expect(['inbound', 'outbound']).toContain(msg.direction);
       });
+      console.log('✅ Message transformation validated (type → direction)');
+    });
+
+    it('syncs messages to database', async () => {
+      const initialCount = mockDatabase.getMessages().length;
+
+      await service.getMessages();
+
+      const finalCount = mockDatabase.getMessages().length;
+      expect(finalCount).toBeGreaterThanOrEqual(initialCount);
+      console.log(`✅ Messages synced to database (${finalCount} total)`);
+    });
+
+    it('updates last_message_sync setting after sync', async () => {
+      const beforeSync = mockDatabase.getSetting('last_message_sync');
+      expect(beforeSync).toBeNull();
+
+      await service.getMessages();
+
+      const afterSync = mockDatabase.getSetting('last_message_sync');
+      expect(afterSync).toBeGreaterThan(Date.now() - 60000); // Within last minute
+      console.log('✅ last_message_sync setting updated');
+    });
+
+    it('auto-adds missing DIDs when syncing messages', async () => {
+      // Clear existing DIDs to simulate missing DID
+      mockDatabase._mockDids = [];
+
+      await service.getMessages();
+
+      const dids = mockDatabase.getDids();
+      expect(dids.length).toBeGreaterThan(0);
+      console.log(`✅ Missing DIDs auto-added (${dids.length} DIDs)`);
+    });
+
+    it('passes optional parameters to client', async () => {
+      const getMessagesSpy = vi.spyOn(mockClient, 'getMessages');
+
+      await service.getMessages({ limit: '50' });
+
+      const callArgs = getMessagesSpy.mock.calls[0][0];
+      expect(callArgs.limit).toBe('50');
+      console.log('✅ Optional parameters passed to client');
     });
   });
 

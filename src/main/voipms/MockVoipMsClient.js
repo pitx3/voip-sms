@@ -113,7 +113,7 @@ export default class MockVoipMsClient extends VoipMsClient {
       results = results.slice(0, parseInt(options.limit, 10));
     }
 
-    return { status: 'success', sms: results };
+    return results; 
   }
 
   async sendMessage(params) {
