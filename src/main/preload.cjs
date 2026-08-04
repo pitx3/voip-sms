@@ -7,43 +7,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getMockStatus: () => ipcRenderer.invoke('get-mock-status'),
   
   // =========================================
-  // DIDs - Fast Path (Database)
+  // DB Operations (fast)
   // =========================================
+  // Get DIDs
   getDidsDb: () => ipcRenderer.invoke('get-dids-db'),
   
-  // =========================================
-  // DIDs - Slow Path (Voip.ms API Sync)
-  // =========================================
-  getDidsVoipms: () => ipcRenderer.invoke('get-dids-voipms'),
-  
-  // =========================================
-  // Conversations
-  // =========================================
-  getConversations: (filters) => ipcRenderer.invoke('get-conversations', filters),
-  getConversationById: (id) => ipcRenderer.invoke('get-conversation-by-id', id),
-  
-  // =========================================
-  // Messages
-  // =========================================
-  // Messages - fast path (read from DB)
+   // Messages - read from database
   getMessagesDb: (options) => ipcRenderer.invoke('get-messages-db', options),
+
+  // Contacts - lookup by phone number
+  getContactDb: (phoneNumber) => ipcRenderer.invoke('get-contact-db', phoneNumber),
+  
+  
+  // =========================================
+  // voip.ms Operations (slow)
+  // =========================================
+
+  // Get DIDs
+  getDidsVoipms: () => ipcRenderer.invoke('get-dids-voipms'),
 
   // Messages - sync from API
   syncMessagesVoipms: () => ipcRenderer.invoke('sync-messages-voipms'),
   
+
   // =========================================
-  // Send Message
-  // =========================================
-  sendMessage: (conversationId, content) => ipcRenderer.invoke('send-message', conversationId, content),
-  
-  // =========================================
-  // Voip.ms Operations (API Sync)
-  // =========================================
-  fetchMessagesVoipms: (options) => ipcRenderer.invoke('fetch-messages-voipms'),
-  sendMessageVoipms: (params) => ipcRenderer.invoke('send-message-voipms'),
-  
-  // =========================================
-  // Credentials
+  // Credentials (test is slow, all others are fast)
   // =========================================
   hasCredentials: () => ipcRenderer.invoke('has-credentials'),
   testCredentials: (credentials) => ipcRenderer.invoke('test-credentials', credentials),

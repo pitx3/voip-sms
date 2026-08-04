@@ -2,181 +2,151 @@
 
 import { Database } from './Database.js';
 
+/**
+ * In-memory mock database for testing and development.
+ */
 export default class MockDatabase extends Database {
   constructor() {
     super();
-    this.dids = [
-      { id: 1, did: '+15551234567', name: 'My Main DID', description: '', sms_enabled: 1, mms_available: 1, last_sync_date: null, created_at: '2026-07-01 00:00:00', updated_at: '2026-07-01 00:00:00' }
+
+    // Mock DIDs
+    this.mockDids = [
+      { id: 1, did: '4145551234', sms_enabled: 1, mms_available: 1 },
+      { id: 2, did: '7205551984', sms_enabled: 1, mms_available: 1 }
     ];
-    this.conversations = [
-      { id: 1, did_id: 1, contact_number: '+15559998888', contact_name: 'John Doe', last_message_date: '2026-07-31 14:30:00', last_message_text: 'Hey, are we still on for lunch?', unread_count: 2, is_deleted: 0, is_archived: 0, created_at: '2026-07-15 00:00:00', updated_at: '2026-07-31 14:30:00' },
-      { id: 2, did_id: 1, contact_number: '+15557776666', contact_name: 'Jane Smith', last_message_date: '2026-07-31 12:15:00', last_message_text: 'Thanks for the info!', unread_count: 0, is_deleted: 0, is_archived: 0, created_at: '2026-07-10 00:00:00', updated_at: '2026-07-31 12:15:00' },
-      { id: 3, did_id: 1, contact_number: '+15555555555', contact_name: null, last_message_date: '2026-07-30 09:00:00', last_message_text: 'Your verification code is 123456', unread_count: 1, is_deleted: 0, is_archived: 0, created_at: '2026-07-30 00:00:00', updated_at: '2026-07-30 09:00:00' }
+
+    // Mock Messages (uses did_id to match our schema)
+    this.mockMessages = [
+      {
+        id: 1,
+        did_id: 1,
+        message_id: '10001',
+        direction: 'inbound',
+        contact_number: '2145559876',
+        message_body: 'Thanks for your payment! We posted it to your account.',
+        timestamp: Math.floor(Date.now() / 1000) - 86400,  // 1 day ago
+        carrier_status: 'received',
+        media_urls: '[]',
+        is_read: 0
+      },
+      {
+        id: 2,
+        did_id: 1,
+        message_id: '10002',
+        direction: 'outbound',
+        contact_number: '2145559876',
+        message_body: 'STOP',
+        timestamp: Math.floor(Date.now() / 1000) - 86000,
+        carrier_status: 'Message delivered to handset.',
+        media_urls: '[]',
+        is_read: 1
+      },
+      {
+        id: 3,
+        did_id: 2,
+        message_id: '10003',
+        direction: 'inbound',
+        contact_number: '7655558524',
+        message_body: 'Saturday should work for everyone.',
+        timestamp: Math.floor(Date.now() / 1000) - 3600,  // 1 hour ago
+        carrier_status: 'received',
+        media_urls: '[]',
+        is_read: 0
+      }
     ];
-    this.messages = [
-      { id: 1, conversation_id: 1, voipms_id: 'msg1', direction: 'inbound', type: 'sms', content: 'Hey!', timestamp: '2026-07-31 14:28:00', carrier_status: 'delivered', is_deleted: 0, is_read: 1, created_at: '2026-07-31 14:28:00' },
-      { id: 2, conversation_id: 1, voipms_id: 'msg2', direction: 'inbound', type: 'sms', content: 'Are we still on for lunch?', timestamp: '2026-07-31 14:29:00', carrier_status: 'delivered', is_deleted: 0, is_read: 1, created_at: '2026-07-31 14:29:00' },
-      { id: 3, conversation_id: 1, voipms_id: 'msg3', direction: 'outbound', type: 'sms', content: 'Yeah, definitely!', timestamp: '2026-07-31 14:30:00', carrier_status: 'delivered', is_deleted: 0, is_read: 1, created_at: '2026-07-31 14:30:00' },
-      { id: 4, conversation_id: 1, voipms_id: 'msg4', direction: 'inbound', type: 'sms', content: 'Hey, are we still on for lunch?', timestamp: '2026-07-31 14:30:00', carrier_status: 'delivered', is_deleted: 0, is_read: 0, created_at: '2026-07-31 14:30:00' },
-      { id: 5, conversation_id: 2, voipms_id: 'msg5', direction: 'outbound', type: 'sms', content: 'Here is the info you requested', timestamp: '2026-07-31 12:10:00', carrier_status: 'delivered', is_deleted: 0, is_read: 1, created_at: '2026-07-31 12:10:00' },
-      { id: 6, conversation_id: 2, voipms_id: 'msg6', direction: 'inbound', type: 'sms', content: 'Thanks for the info!', timestamp: '2026-07-31 12:15:00', carrier_status: 'delivered', is_deleted: 0, is_read: 1, created_at: '2026-07-31 12:15:00' },
-      { id: 7, conversation_id: 3, voipms_id: 'msg7', direction: 'inbound', type: 'sms', content: 'Your verification code is 123456', timestamp: '2026-07-30 09:00:00', carrier_status: 'delivered', is_deleted: 0, is_read: 0, created_at: '2026-07-30 09:00:00' }
+
+    this.contacts = [
+      {
+        id: 1,
+        name: 'Mom',
+        phone_number: '2145559876',
+        notes: ''
+      },
+      {
+        id: 2,
+        name: 'John Doe',
+        phone_number: '7655558524',
+        notes: 'Work contact'
+      },
+      {
+        id: 3,
+        name: 'Rocket Mortgage',
+        phone_number: '21493',
+        notes: 'Automated alerts'
+      }
     ];
-    this.attachments = [];
-    this.sent_messages_log = [];
-    this.settings = {}; 
+
+    // Settings
+    this.settings = {};
   }
 
-  async init() { return this; }
-  async close() { }
+  async init() {
+    // No-op for mock
+    return this;
+  }
+
+  async close() {
+    // No-op for mock
+  }
 
   // =========================================
   // DIDs
   // =========================================
 
-  getDids() { return [...this.dids]; }
+  getDids() {
+    return [...this.mockDids];
+  }
 
   addDid(did) {
-    const newDid = { ...did, id: this.dids.length + 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    this.dids.push(newDid);
+    const newDid = {
+      id: this.mockDids.length + 1,
+      ...did
+    };
+    this.mockDids.push(newDid);
     return newDid;
   }
 
-  updateDid(id, updates) {
-    const idx = this.dids.findIndex(d => d.id === id);
-    if (idx === -1) return null;
-    this.dids[idx] = { ...this.dids[idx], ...updates, updated_at: new Date().toISOString() };
-    return this.dids[idx];
-  }
-
-  deleteDid(id) {
-    const idx = this.dids.findIndex(d => d.id === id);
-    if (idx === -1) return;
-    this.dids.splice(idx, 1);
-  }
-
   syncDids(didsFromVoipms) {
-    const existingDids = this.getDids();
-    const existingDidMap = new Map(existingDids.map(d => [d.did, d]));
-
-    const voipmsDidSet = new Set();
-
-    // Add or update each DID from Voip.ms
-    for (const did of didsFromVoipms) {
-      voipmsDidSet.add(did.did);
-
-      const existing = existingDidMap.get(did.did);
-      if (existing) {
-        // Update existing DID
-        this.updateDid(existing.id, {
-          name: did.name || existing.name,
-          description: did.description || existing.description,
-          sms_enabled: did.sms_enabled ?? existing.sms_enabled,
-          mms_available: did.mms_available ?? existing.mms_available,
-          last_sync_date: new Date().toISOString()
-        });
-      } else {
-        // Add new DID
-        this.addDid({
-          did: did.did,
-          name: did.name || null,
-          description: did.description || '',
-          sms_enabled: did.sms_enabled ?? 1,
-          mms_available: did.mms_available ?? 1,
-          last_sync_date: new Date().toISOString()
-        });
-      }
-    }
-
-    // Delete DIDs that no longer exist on Voip.ms
-    for (const existingDid of existingDids) {
-      if (!voipmsDidSet.has(existingDid.did)) {
-        this.deleteDid(existingDid.id);
-      }
-    }
+    this.mockDids = didsFromVoipms.map((did, index) => ({
+      id: index + 1,
+      ...did
+    }));
   }
 
   // =========================================
-  // Conversations
+  // Settings
   // =========================================
 
-  getConversations(filters = {}) {
-    let results = this.conversations.filter(c => !c.is_deleted && !c.is_archived);
-    if (filters.did_id) {
-      results = results.filter(c => c.did_id === filters.did_id);
-    }
-    return results.sort((a, b) => new Date(b.last_message_date) - new Date(a.last_message_date));
+  getSetting(key) {
+    return this.settings[key] || null;
   }
 
-  getConversationById(id) { return this.conversations.find(c => c.id === id) || null; }
-
-  getOrCreateConversation(didId, contactNumber) {
-    let conv = this.conversations.find(c => c.did_id === didId && c.contact_number === contactNumber && !c.is_deleted);
-    if (!conv) {
-      conv = { id: this.conversations.length + 1, did_id: didId, contact_number: contactNumber, contact_name: null, last_message_date: null, last_message_text: null, unread_count: 0, is_deleted: 0, is_archived: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      this.conversations.push(conv);
-    }
-    return conv;
-  }
-
-  updateConversation(id, updates) {
-    const idx = this.conversations.findIndex(c => c.id === id);
-    if (idx === -1) return null;
-    this.conversations[idx] = { ...this.conversations[idx], ...updates, updated_at: new Date().toISOString() };
-    return this.conversations[idx];
-  }
-
-  deleteConversation(id, hard = false) {
-    if (hard) {
-      const idx = this.conversations.findIndex(c => c.id === id);
-      if (idx === -1) return;
-      this.conversations.splice(idx, 1);
-    } else {
-      return this.updateConversation(id, { is_deleted: 1 });
-    }
+  setSetting(key, value) {
+    this.settings[key] = value;
   }
 
   // =========================================
   // Messages
   // =========================================
 
-  getMessages(conversationId, options = {}) {
-    const limit = options.limit || 20;
-    const offset = options.offset || 0;
-    return this.messages
-      .filter(m => m.conversation_id === conversationId && !m.is_deleted)
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(offset, offset + limit);
-  }
-
-  addMessage(message) {
-    const newMessage = { ...message, id: this.messages.length + 1, is_read: 0, is_deleted: 0, created_at: new Date().toISOString() };
-    this.messages.push(newMessage);
-    return newMessage;
-  }
-
-  markMessagesRead(conversationId) {
-    this.messages.forEach(m => { if (m.conversation_id === conversationId) m.is_read = 1; });
-  }
-
   /**
-   * Sync messages to database (upsert by message_id + did_id)
+   * Sync messages to mock database (upsert by message_id + did_id)
    * @param {Array} messages - Array of message objects with did_id
-   * @returns {Promise<{synced: number, new: number}>} Sync statistics
+   * @returns {{synced: number, new: number}} Sync statistics
    */
   syncMessages(messages) {
     let newCount = 0;
 
     for (const msg of messages) {
-      const existingIndex = this.messages.findIndex(
+      const existingIndex = this.mockMessages.findIndex(
         m => m.message_id === msg.message_id && m.did_id === msg.did_id
       );
 
       if (existingIndex === -1) {
-        this.messages.push(msg);
+        this.mockMessages.push(msg);
         newCount++;
       } else {
-        this.messages[existingIndex] = msg;
+        this.mockMessages[existingIndex] = msg;
       }
     }
 
@@ -186,55 +156,37 @@ export default class MockDatabase extends Database {
     };
   }
 
-  // =========================================
-  // Attachments
-  // =========================================
+  // MockDatabase.js
+  getMessages(options = {}) {
+    let results = [...this.mockMessages];
 
-  addAttachment(attachment) {
-    const newAttachment = { ...attachment, id: this.attachments.length + 1, created_at: new Date().toISOString() };
-    this.attachments.push(newAttachment);
-    return newAttachment;
+    if (options.did_id) {
+      results = results.filter(m => m.did_id === options.did_id);
+    }
+
+    if (options.contact_number) {
+      results = results.filter(m => m.contact_number === options.contact_number);
+    }
+
+    const orderBy = options.orderBy === 'ASC' ? 1 : -1;
+    results.sort((a, b) => orderBy * (a.timestamp - b.timestamp));
+
+    if (options.limit) {
+      results = results.slice(0, options.limit);
+    }
+
+    return results;
   }
 
-  getAttachmentsForMessage(messageId) { return this.attachments.filter(a => a.message_id === messageId); }
-
-
-  // =============================================================================
-  // Settings
-  // =============================================================================
-
+  // =========================================
+  // Contacts
+  // =========================================
   /**
-   * Get a setting value by key
-   * @param {string} key - Setting key
-   * @returns {Promise<string|null>} Setting value or null if not found
+   * Get a contact by phone number
+   * @param {string} phoneNumber - Contact phone number
+   * @returns {Object|null} Contact object or null if not found
    */
-  getSetting(key) {
-    return this.settings[key] || null;
-  }
-
-  /**
-   * Set a setting value (insert or update)
-   * @param {string} key - Setting key
-   * @param {string} value - Setting value
-   * @returns {Promise<void>}
-   */
-  setSetting(key, value) {
-    console.log('settings = ', this.settings);
-    this.settings[key] = value;
-  }
-
-  // =========================================
-  // Sent Messages Log
-  // =========================================
-
-  logSentMessage(logEntry) {
-    const newEntry = { ...logEntry, id: this.sent_messages_log.length + 1, timestamp: new Date().toISOString() };
-    this.sent_messages_log.push(newEntry);
-    return newEntry;
-  }
-
-  getSentCountToday(didId) {
-    const today = new Date().toDateString();
-    return this.sent_messages_log.filter(e => e.did_id === didId && new Date(e.timestamp).toDateString() === today).length;
+  getContact(phoneNumber) {
+    return this.contacts.find(c => c.phone_number === phoneNumber) || null;
   }
 }

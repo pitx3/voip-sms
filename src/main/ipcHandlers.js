@@ -9,67 +9,35 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   ipcMain.handle('get-mock-status', async () => getMockStatus());
 
   // =========================================
-  // DIDs - Fast Path (Database)
+  // DB Operations (fast)
   // =========================================
 
-  ipcMain.handle('get-dids-db', async () => {
+  // get DIDs
+  ipcMain.handle('get-dids-db', () => {
     const dids = db.getDids();
     return { dids };
   });
 
+  // Get messages from database (with optional filtering)
+  ipcMain.handle('get-messages-db', (event, options = {}) => {
+    const messages = db.getMessages(options);
+    return { messages };
+  });
+
+  // Get contact by phone number
+  ipcMain.handle('get-contact-db', (event, phoneNumber) => {
+    const contact = db.getContact(phoneNumber);
+    return { contact };
+  });
+
   // =========================================
-  // DIDs - Slow Path (Voip.ms API Sync)
+  // Voip.ms Operations (API = slower)
   // =========================================
 
+  // get DIDs
   ipcMain.handle('get-dids-voipms', async () => {
     const dids = await voipMsService.getDids();
     return { dids };
-  });
-
-  // =========================================
-  // Conversations (DB)
-  // =========================================
-
-  ipcMain.handle('get-conversations', async (event, filters) => {
-    return db.getConversations(filters);
-  });
-
-  ipcMain.handle('get-conversation-by-id', async (event, id) => {
-    return db.getConversationById(id);
-  });
-
-  // =========================================
-  // Messages (DB)
-  // =========================================
-
-  ipcMain.handle('get-messages', async (event, conversationId, options) => {
-    return db.getMessages(conversationId, options);
-  });
-
-  // =========================================
-  // Send Message (DB - for now)
-  // =========================================
-
-  ipcMain.handle('send-message', async (event, conversationId, content) => {
-    const message = db.addMessage({
-      conversation_id: conversationId,
-      direction: 'outbound',
-      type: 'sms',
-      content: content,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-      carrier_status: 'pending'
-    });
-    return message;
-  });
-
-  // =========================================
-  // Voip.ms Operations (API Sync)
-  // =========================================
-
-  // Get messages from local database (fast path)
-  ipcMain.handle('get-messages-db', async (event, options = {}) => {
-    const messages = await database.getMessages(options);
-    return { messages };
   });
 
   // Sync messages from Voip.ms API (slow path)
@@ -83,8 +51,9 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     }
   });
 
+
   // =========================================
-  // Credentials
+  // Credentials (test is slow, all others are fast)
   // =========================================
 
   ipcMain.handle('has-credentials', async () => {

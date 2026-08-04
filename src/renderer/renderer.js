@@ -1,16 +1,46 @@
+// src/renderer/renderer.js
+
 import { showNewConversationDialog } from './ui/newConversationDialog.js';
 import { formatPhoneNumber, formatMessageTime } from './utils/format.js';
-import {
-  getMockStatus,
-  getConversations,
-  getConversationById,
-  getMessages,
-  sendMessage
-} from './api/ipc.js';
+import { getMockStatus, getMessagesDb, getContactDb } from './api/ipc.js';
 
 // State
-let selectedConversationId = null;
+let selectedContact = null;  // { did_id, contact_number }
 let currentMessages = [];
+let conversations = [];  // Derived from messages
+
+// --- Helper Functions ---
+
+/**
+ * Build conversation list from unique (did_id, contact_number) pairs
+ */
+function buildConversationsFromMessages(messages) {
+  const map = new Map();
+
+  messages.forEach(msg => {
+    const key = `${msg.did_id}-${msg.contact_number}`;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        did_id: msg.did_id,
+        contact_number: msg.contact_number,
+        last_message_date: msg.timestamp,
+        message_count: 1,
+        unread_count: msg.is_read ? 0 : 1
+      });
+    } else {
+      const conv = map.get(key);
+      conv.message_count++;
+      if (!msg.is_read) conv.unread_count++;
+      if (msg.timestamp > conv.last_message_date) {
+        conv.last_message_date = msg.timestamp;
+      }
+    }
+  });
+
+  // Sort by last message date (newest first)
+  return Array.from(map.values()).sort((a, b) => b.last_message_date - a.last_message_date);
+}
 
 // --- Render Functions ---
 
@@ -18,51 +48,89 @@ async function renderConversationList() {
   const listEl = document.getElementById('conversation-list');
   listEl.innerHTML = '';
 
-  const conversations = await getConversations();
+  // Fetch all messages to build conversation list
+  const result = await getMessagesDb();
+  const allMessages = result.messages || [];
 
-  conversations.forEach(conv => {
+  // Build conversations from messages
+  conversations = buildConversationsFromMessages(allMessages);
+
+  for (const conv of conversations) {
+    // Try to get contact name
+    let displayName = formatPhoneNumber(conv.contact_number);
+    try {
+      const contactResult = await getContactDb(conv.contact_number);
+      console.log('[renderer.js] contactResult', contactResult);
+      if (contactResult.contact) {
+        displayName = contactResult.contact.name;
+      }
+    } catch (e) {
+      // Contact not found, use phone number
+    }
+
     const itemEl = document.createElement('div');
-    itemEl.className = `conversation-item ${conv.id === selectedConversationId ? 'selected' : ''}`;
-    itemEl.dataset.id = conv.id;
+    itemEl.className = `conversation-item ${selectedContact &&
+        selectedContact.did_id === conv.did_id &&
+        selectedContact.contact_number === conv.contact_number
+        ? 'selected'
+        : ''
+      }`;
 
-    const displayName = conv.contact_name || formatPhoneNumber(conv.contact_number);
+    // Get last message preview for this conversation
+    const lastMessage = allMessages
+      .filter(m => m.did_id === conv.did_id && m.contact_number === conv.contact_number)
+      .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+    const preview = lastMessage ? lastMessage.message_body.substring(0, 50) + (lastMessage.message_body.length > 50 ? '...' : '') : '';
 
     itemEl.innerHTML = `
-      <div class="contact-name">${displayName}</div>
-      <div class="last-message">${conv.last_message_text || ''}</div>
+      <div class="conversation-name">${displayName}</div>
+      <div class="conversation-preview">${preview}</div>
     `;
 
-    itemEl.addEventListener('click', () => selectConversation(conv.id));
+    itemEl.addEventListener('click', () => {
+      selectConversation(conv.did_id, conv.contact_number);
+    });
+
     listEl.appendChild(itemEl);
-  });
+  }
 }
 
-async function renderMessages(conversationId) {
+async function renderMessages(did_id, contact_number) {
   const listEl = document.getElementById('message-list');
   const headerEl = document.getElementById('message-thread-header');
 
-  const conversations = await getConversations();
-  const conv = conversations.find(c => c.id === conversationId);
-  if (!conv) return;
-
-  const displayName = conv.contact_name || formatPhoneNumber(conv.contact_number);
-  const displayNumber = formatPhoneNumber(conv.contact_number);
-
-  if (conv.contact_name) {
-    headerEl.querySelector('.contact-name').textContent = `${displayName} - ${displayNumber}`;
-  } else {
-    headerEl.querySelector('.contact-name').textContent = displayNumber;
+  // Get contact name for header
+  let displayName = formatPhoneNumber(contact_number);
+  try {
+    const contactResult = await getContactDb(contact_number);
+    if (contactResult.contact) {
+      displayName = contactResult.contact.name;
+    }
+  } catch (e) {
+    // Contact not found, use phone number
   }
+
+  const displayNumber = formatPhoneNumber(contact_number);
+  headerEl.querySelector('.contact-name').textContent = 
+    displayName !== displayNumber ? `${displayName} - ${displayNumber}` : displayName;
 
   listEl.innerHTML = '';
 
-  currentMessages = await getMessages(conversationId);
+  // Fetch messages for this conversation
+  const result = await getMessagesDb({
+    did_id,
+    contact_number,
+    orderBy: 'ASC'  // Oldest first for display
+  });
+
+  currentMessages = result.messages || [];
 
   currentMessages.forEach(msg => {
     const msgEl = document.createElement('div');
     msgEl.className = `message-item ${msg.direction}`;
     msgEl.innerHTML = `
-      <div class="message-content">${msg.content}</div>
+      <div class="message-content">${msg.message_body}</div>
       <div class="message-time">${formatMessageTime(msg.timestamp)}</div>
     `;
     listEl.appendChild(msgEl);
@@ -72,10 +140,11 @@ async function renderMessages(conversationId) {
   listEl.scrollTop = listEl.scrollHeight;
 }
 
-async function selectConversation(id) {
-  selectedConversationId = id;
+async function selectConversation(did_id, contact_number) {
+  selectedContact = { did_id, contact_number };
   await renderConversationList();
-  await renderMessages(id);
+  await renderMessages(did_id, contact_number);
+  await updateStatusBar();
 }
 
 async function updateStatusBar() {
@@ -90,61 +159,49 @@ async function updateStatusBar() {
 
   document.getElementById('status-text').textContent = `Last checked: ${timestamp}`;
 
-  const conversations = await getConversations();
-  const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
-  document.getElementById('unread-count').textContent = `${totalUnread} unread`;
+  // Count unread messages
+  const unreadCount = currentMessages.filter(m => !m.is_read).length;
+  document.getElementById('unread-count').textContent = `${unreadCount} unread`;
 }
 
-// --- Compose Box ---
+// --- Sync Button ---
 
-async function handleSend() {
-  const inputEl = document.getElementById('message-input');
-  const content = inputEl.value.trim();
+const syncMessagesBtn = document.getElementById('sync-messages-btn');
+if (syncMessagesBtn) {
+  syncMessagesBtn.addEventListener('click', async () => {
+    syncMessagesBtn.disabled = true;
 
-  if (!content || !selectedConversationId) return;
+    try {
+      const result = await window.electronAPI.syncMessagesVoipms();
 
-  await sendMessage(selectedConversationId, content);
-  inputEl.value = '';
-  await renderMessages(selectedConversationId);
-  await renderConversationList(); // Refresh to update last_message_text
+      if (result.success) {
+        console.log(`Synced ${result.count} messages`);
+        await renderConversationList();
+        if (selectedContact) {
+          await renderMessages(selectedContact.did_id, selectedContact.contact_number);
+        }
+      } else {
+        alert('Failed to sync messages: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Sync failed:', error);
+      alert('Failed to sync messages');
+    } finally {
+      syncMessagesBtn.disabled = false;
+    }
+  });
 }
 
-document.getElementById('send-button').addEventListener('click', handleSend);
+// --- New Conversation Button ---
 
-document.getElementById('message-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    handleSend();
-  }
-});
-
-// --- Initialize ---
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const mockStatus = await getMockStatus();
-  if (mockStatus.isMock) {
-    document.getElementById('mock-banner').style.display = 'block';
-  }
-  await renderConversationList();
-  await updateStatusBar();
-
-  // Select first conversation by default
-  const conversations = await getConversations();
-  if (conversations.length > 0) {
-    await selectConversation(conversations[0].id);
-  }
-});
-
-// New Conversation Button
 const newConversationBtn = document.getElementById('new-conversation-btn');
 if (newConversationBtn) {
   newConversationBtn.addEventListener('click', async () => {
     try {
-      // Fast path: Read DIDs from local database
       const result = await window.electronAPI.getDidsDb();
 
       if (!result.dids || result.dids.length === 0) {
-        alert('No DIDs available. Click menu to refresh from Voip.ms.');
+        alert('No DIDs available. Click refresh to sync from Voip.ms.');
         return;
       }
 
@@ -152,7 +209,9 @@ if (newConversationBtn) {
         dids: result.dids,
         onConfirm: (did, phoneNumber) => {
           console.log('New conversation:', { did, phoneNumber });
-          // TODO: Check if conversation exists, open or create
+          // TODO: Send initial message to start conversation
+          // For now, just refresh the list
+          renderConversationList();
         },
         onCancel: () => {
           console.log('New conversation cancelled');
@@ -165,7 +224,8 @@ if (newConversationBtn) {
   });
 }
 
-// Logout Button
+// --- Logout Button ---
+
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
@@ -174,7 +234,6 @@ if (logoutBtn) {
     if (confirmed) {
       try {
         await window.electronAPI.deleteCredentials();
-        // Reload the app to show credentials window
         window.location.reload();
       } catch (error) {
         console.error('Logout failed:', error);
@@ -183,3 +242,21 @@ if (logoutBtn) {
     }
   });
 }
+
+// --- Initialize ---
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const mockStatus = await getMockStatus();
+  if (mockStatus.isMock) {
+    document.getElementById('mock-banner').style.display = 'block';
+  }
+
+  await renderConversationList();
+  await updateStatusBar();
+
+  // Select first conversation by default
+  if (conversations.length > 0) {
+    const first = conversations[0];
+    await selectConversation(first.did_id, first.contact_number);
+  }
+});

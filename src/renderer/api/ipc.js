@@ -7,39 +7,19 @@ export async function getMockStatus() {
 }
 
 /**
- * Get all conversations
- * @param {Object} filters - Optional filters (e.g., { did_id: 1 })
- * @returns {Promise<Array>}
- */
-export async function getConversations(filters = {}) {
-  return await window.electronAPI.getConversations(filters);
-}
-
-/**
- * Get single conversation by ID
- * @param {number} id - Conversation ID
+ * Get contact by phone number from database
+ * @param {string} phoneNumber - Contact phone number
  * @returns {Promise<Object|null>}
  */
-export async function getConversationById(id) {
-  return await window.electronAPI.getConversationById(id);
+export async function getContactDb(phoneNumber) {
+  return await window.electronAPI.getContactDb(phoneNumber);
 }
 
 /**
- * Get messages for a conversation
- * @param {number} conversationId - Conversation ID
- * @param {Object} options - Optional { limit, offset }
+ * Get messages from database with optional filtering
+ * @param {Object} options - Filter { did_id, contact_number, limit, orderBy }
  * @returns {Promise<Array>}
  */
-export async function getMessages(conversationId, options = {}) {
-  return await window.electronAPI.getMessages(conversationId, options);
-}
-
-/**
- * Send a message
- * @param {number} conversationId - Conversation ID
- * @param {string} content - Message text
- * @returns {Promise<Object>}
- */
-export async function sendMessage(conversationId, content) {
-  return await window.electronAPI.sendMessage(conversationId, content);
+export async function getMessagesDb(options = {}) {
+  return await window.electronAPI.getMessagesDb(options);
 }

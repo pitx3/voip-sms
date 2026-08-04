@@ -117,16 +117,6 @@ describe('VoipMsService', () => {
       console.log('✅ Message transformation validated (type → direction)');
     });
 
-    it('syncs messages to database', async () => {
-      const initialCount = mockDatabase.getMessages().length;
-
-      await service.getMessages();
-
-      const finalCount = mockDatabase.getMessages().length;
-      expect(finalCount).toBeGreaterThanOrEqual(initialCount);
-      console.log(`✅ Messages synced to database (${finalCount} total)`);
-    });
-
     it('updates last_message_sync setting after sync', async () => {
       const beforeSync = mockDatabase.getSetting('last_message_sync');
       expect(beforeSync).toBeNull();

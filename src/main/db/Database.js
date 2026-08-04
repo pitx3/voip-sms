@@ -2,14 +2,11 @@
 
 /**
  * Abstract database interface defining the contract for database implementations.
- *  
- * NOT CURRENTLY ENFORCED (August 2, 2026)
- * Classes extend this but TypeScript would be better for true interface enforcement.
  */
 export class Database {
   /**
    * Initialize the database (run migrations, create tables, etc.)
-   * @returns {Promise<Database>} this
+   * @returns {Promise<this>}
    */
   async init() {
     throw new Error('init() must be implemented');
@@ -45,29 +42,7 @@ export class Database {
   }
 
   /**
-   * Update an existing DID
-   * @param {number} id - DID ID
-   * @param {Object} updates - Fields to update
-   * @returns {Promise<Object|null>} Updated DID or null if not found
-   */
-  updateDid(id, updates) {
-    throw new Error('updateDid() must be implemented');
-  }
-
-  /**
-   * Delete a DID
-   * @param {number} id - DID ID
-   * @returns {Promise<void>}
-   */
-  deleteDid(id) {
-    throw new Error('deleteDid() must be implemented');
-  }
-
-  /**
    * Sync DIDs with Voip.ms API
-   * - Add new DIDs that don't exist locally
-   * - Update existing DIDs
-   * - Delete DIDs that no longer exist on Voip.ms
    * @param {Array} didsFromVoipms - Array of DID objects from Voip.ms API
    * @returns {Promise<void>}
    */
@@ -76,86 +51,16 @@ export class Database {
   }
 
   // =========================================
-  // Conversations
-  // =========================================
-
-  getConversations(filters) {
-    throw new Error('getConversations() must be implemented');
-  }
-
-  getConversationById(id) {
-    throw new Error('getConversationById() must be implemented');
-  }
-
-  getOrCreateConversation(didId, contact) {
-    throw new Error('getOrCreateConversation() must be implemented');
-  }
-
-  updateConversation(id, updates) {
-    throw new Error('updateConversation() must be implemented');
-  }
-
-  deleteConversation(id) {
-    throw new Error('deleteConversation() must be implemented');
-  }
-
-  // =========================================
-  // Messages
-  // =========================================
-
-  getMessages(conversationId, options) {
-    throw new Error('getMessages() must be implemented');
-  }
-
-  addMessage(message) {
-    throw new Error('addMessage() must be implemented');
-  }
-
-  markMessagesRead(conversationId) {
-    throw new Error('markMessagesRead() must be implemented');
-  }
-
-  /**
-   * Sync messages to database (upsert by message_id + did_id)
-   * @param {Array} messages - Array of message objects with did_id
-   * @param {number} messages[].did_id - Foreign key to dids table
-   * @param {number} messages[].message_id - Voip.ms message ID
-   * @param {string} messages[].direction - 'inbound' or 'outbound'
-   * @param {string} messages[].contact_number - Other party's phone number
-   * @param {string} messages[].message_body - Message text
-   * @param {number} messages[].timestamp - Unix timestamp (seconds)
-   * @param {string} [messages[].carrier_status] - Delivery status
-   * @param {string} [messages[].media_urls] - JSON array of media URLs
-   * @param {number} [messages[].is_read] - Read flag (0 or 1)
-   * @returns {Promise<{synced: number, new: number}>} Sync statistics
-   */
-  syncMessages(messages) {
-    throw new Error('Method syncMessages() must be implemented');
-  }
-
-  // =========================================
-  // Attachments
-  // =========================================
-
-  addAttachment(attachment) {
-    throw new Error('addAttachment() must be implemented');
-  }
-
-  getAttachmentsForMessage(messageId) {
-    throw new Error('getAttachmentsForMessage() must be implemented');
-  }
-
-  // =========================================
   // Settings
   // =========================================
 
   /**
    * Get a setting value by key
-   * @param {string} key - Setting key (e.g., 'last_message_sync')
+   * @param {string} key - Setting key
    * @returns {Promise<string|null>} Setting value or null if not found
    */
   getSetting(key) {
-    throw new Error('Method getSetting() must be implemented');
+    throw new Error('getSetting() must be implemented');
   }
 
   /**
@@ -165,18 +70,47 @@ export class Database {
    * @returns {Promise<void>}
    */
   setSetting(key, value) {
-    throw new Error('Method setSetting() must be implemented');
+    throw new Error('setSetting() must be implemented');
   }
 
   // =========================================
-  // Sent Messages Log
+  // Messages
   // =========================================
 
-  logSentMessage(sentMessage) {
-    throw new Error('logSentMessage() must be implemented');
+  // Database.js - Add this to the Messages section
+
+  /**
+   * Get messages from database with optional filtering
+   * @param {Object} [options] - Filter options
+   * @param {number} [options.did_id] - Filter by DID ID
+   * @param {string} [options.contact_number] - Filter by contact number
+   * @param {number} [options.limit] - Max messages to return
+   * @param {string} [options.orderBy] - Sort order ('ASC' or 'DESC', default 'DESC')
+   * @returns {Array} Array of message objects
+   */
+  getMessages(options = {}) {
+    throw new Error('getMessages() must be implemented');
   }
 
-  getSentCountToday(didId) {
-    throw new Error('getSentCountToday() must be implemented');
+  /**
+   * Sync messages to database (upsert by message_id + did_id)
+   * @param {Array} messages - Array of message objects with did_id
+   * @returns {{synced: number, new: number}} Sync statistics
+   */
+  syncMessages(messages) {
+    throw new Error('syncMessages() must be implemented');
+  }
+
+  // =========================================
+  // Contacts
+  // =========================================
+
+  /**
+   * Get a contact by phone number
+   * @param {string} phoneNumber - Contact phone number
+   * @returns {Object|null} Contact object or null if not found
+   */
+  async getContact(phoneNumber) {
+    throw new Error('getContact() must be implemented');
   }
 }

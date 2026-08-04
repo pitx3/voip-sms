@@ -15,11 +15,22 @@ CREATE TABLE IF NOT EXISTS messages (
   UNIQUE(message_id, did_id)
 );
 
+-- Index for fast conversation loading (messages by DID + timestamp)
+CREATE INDEX IF NOT EXISTS idx_messages_did_timestamp ON messages(did_id, timestamp DESC);
+
 -- Settings key-value store
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,
   value TEXT
 );
 
--- Index for fast conversation loading (messages by DID + timestamp)
-CREATE INDEX IF NOT EXISTS idx_messages_did_timestamp ON messages(did_id, timestamp DESC);
+-- Contacts table (local only)
+CREATE TABLE IF NOT EXISTS contacts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  phone_number TEXT NOT NULL UNIQUE,
+  notes TEXT
+);
+
+-- Index for fast contact lookup by phone number
+CREATE INDEX IF NOT EXISTS idx_contacts_phone_number ON contacts(phone_number);
