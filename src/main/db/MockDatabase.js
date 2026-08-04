@@ -80,12 +80,12 @@ export default class MockDatabase extends Database {
     this.settings = {};
   }
 
-  async init() {
+  init() {
     // No-op for mock
     return this;
   }
 
-  async close() {
+  close() {
     // No-op for mock
   }
 
@@ -134,7 +134,7 @@ export default class MockDatabase extends Database {
    * @param {Array} messages - Array of message objects with did_id
    * @returns {{synced: number, new: number}} Sync statistics
    */
-  syncMessages(messages) {
+  saveMessages(messages) {
     let newCount = 0;
 
     for (const msg of messages) {

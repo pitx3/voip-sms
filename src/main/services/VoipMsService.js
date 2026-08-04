@@ -130,7 +130,7 @@ export class VoipMsService {
 
     // Sync to database
     if (this.database) {
-      await this.database.syncMessages(messagesWithDidId);
+      this.database.saveMessages(messagesWithDidId);
       this.database.setSetting('last_message_sync', currentSyncTimestamp);
     }
 

@@ -166,4 +166,69 @@ describe('VoipMsService', () => {
       expect(result.status).toBe('error');
     });
   });
+
+  it('calls database.saveMessages() with transformed messages including numeric did_id', async () => {
+    // Spy on saveMessages to capture what's passed
+    const saveMessagesSpy = vi.spyOn(mockDatabase, 'saveMessages');
+
+    // Mock client returns messages in API format
+    const mockApiMessages = [
+      {
+        id: '12345',
+        date: '2025-08-01 14:30:00',
+        did: '7195555309',  // Phone number string
+        contact: '7205558675',
+        message: 'Test message body',
+        type: '0',
+        media: [],
+        carrier_status: '1'
+      }
+    ];
+
+    // Override mock client's getMessages
+    const originalGetMessages = mockClient.getMessages.bind(mockClient);
+    mockClient.getMessages = async () => mockApiMessages;
+
+    // Ensure DID exists in mock database (so lookup succeeds)
+    mockDatabase.addDid({
+      did: '7195555309',
+      sms_enabled: 1,
+      mms_available: 1
+    });
+
+    await service.getMessages();
+
+    // Verify saveMessages was called exactly once
+    expect(saveMessagesSpy).toHaveBeenCalledTimes(1);
+
+    // Get the messages that were passed to saveMessages
+    const savedMessages = saveMessagesSpy.mock.calls[0][0];
+
+    // Verify it's an array with correct length
+    expect(Array.isArray(savedMessages)).toBe(true);
+    expect(savedMessages.length).toBe(1);
+
+    // Verify message has numeric did_id (foreign key), not string did
+    const firstMsg = savedMessages[0];
+    expect(firstMsg.did_id).toBeDefined();
+    expect(typeof firstMsg.did_id).toBe('number');  // Numeric FK
+    expect(firstMsg.did_id).toBeGreaterThan(0);
+
+    // Verify other transformations
+    expect(firstMsg.message_id).toBe('12345');
+    expect(firstMsg.contact_number).toBe('7205558675');
+    expect(firstMsg.message_body).toBe('Test message body');
+    expect(firstMsg.direction).toBe('outbound');  // type '0' → outbound
+    expect(typeof firstMsg.timestamp).toBe('number');  // Unix timestamp
+
+    // Both properties exist - did_id is the FK, did is the original phone number
+    expect(firstMsg.did).toBe('7195555309');  // Original phone string (kept for reference)
+    expect(firstMsg.did_id).toBeDefined();     // Numeric FK (used for DB)
+    expect(typeof firstMsg.did_id).toBe('number');
+
+    // Cleanup
+    mockClient.getMessages = originalGetMessages;
+
+    console.log('✅ saveMessages() called with numeric did_id (FK resolved)');
+  });
 });

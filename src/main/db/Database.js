@@ -8,7 +8,7 @@ export class Database {
    * Initialize the database (run migrations, create tables, etc.)
    * @returns {Promise<this>}
    */
-  async init() {
+  init() {
     throw new Error('init() must be implemented');
   }
 
@@ -16,7 +16,7 @@ export class Database {
    * Close the database connection
    * @returns {Promise<void>}
    */
-  async close() {
+  close() {
     throw new Error('close() must be implemented');
   }
 
@@ -97,8 +97,8 @@ export class Database {
    * @param {Array} messages - Array of message objects with did_id
    * @returns {{synced: number, new: number}} Sync statistics
    */
-  syncMessages(messages) {
-    throw new Error('syncMessages() must be implemented');
+  saveMessages(messages) {
+    throw new Error('saveMessages() must be implemented');
   }
 
   // =========================================
@@ -110,7 +110,7 @@ export class Database {
    * @param {string} phoneNumber - Contact phone number
    * @returns {Object|null} Contact object or null if not found
    */
-  async getContact(phoneNumber) {
+  getContact(phoneNumber) {
     throw new Error('getContact() must be implemented');
   }
 }

@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS messages (
   carrier_status TEXT,
   media_urls TEXT,
   is_read INTEGER NOT NULL DEFAULT 0,
-  UNIQUE(message_id, did_id)
+  UNIQUE(message_id, did_id),
+  FOREIGN KEY (did_id) REFERENCES dids(id)
 );
 
 -- Index for fast conversation loading (messages by DID + timestamp)

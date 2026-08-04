@@ -44,7 +44,7 @@ async function getDatabase() {
       dbInstance = new SqliteDatabase(dbPath);
     }
     
-    await dbInstance.init();
+    dbInstance.init();
   }
   
   return dbInstance;
