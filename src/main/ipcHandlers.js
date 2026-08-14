@@ -13,6 +13,16 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
   // DB Operations (fast)
   // =========================================
 
+  // Get setting by key
+  ipcMain.handle('get-setting', (event, key) => {
+    return db.getSetting(key);
+  });
+
+  // Set setting by key
+  ipcMain.handle('set-setting', (event, key, value) => {
+    db.setSetting(key, value);
+  });
+
   // get DIDs
   ipcMain.handle('get-dids-db', () => {
     const dids = db.getDids();
@@ -99,6 +109,20 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
     } catch (error) {
       return { success: false, message: error.message };
     }
+  });
+
+  // =========================================
+  // First Run
+  // =========================================
+
+  // First run complete - emit event to main process
+  ipcMain.handle('first-run-complete', () => {
+    appEvents.emit('first-run-complete');
+  });
+
+  // First run aborted - emit event to main process
+  ipcMain.handle('first-run-aborted', () => {
+    appEvents.emit('first-run-aborted');
   });
 
   // =========================================

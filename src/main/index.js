@@ -37,10 +37,10 @@ function createWindow() {
   mainWindow.loadFile('src/renderer/index.html');
 
   // Listen for logout - switch to credentials window
-  appEvents.once('credentials-deleted', () => {    
+  appEvents.once('credentials-deleted', () => {
     // Create credentials window FIRST
     createCredentialsWindow();
-    
+
     // THEN close main window
     mainWindow.close();
   });
@@ -53,7 +53,7 @@ function createWindow() {
 // can we save?
 
 function createCredentialsWindow() {
-  
+
   const credentialWindow = new BrowserWindow({
     width: 500,
     height: 600,
@@ -69,10 +69,69 @@ function createCredentialsWindow() {
 
   // Listen for credentials-saved event (from EventEmitter, not IPC)
   appEvents.once('credentials-saved', () => {
-    // Create main window FIRST
+    // Check if this is first run
+    const isFirstRun = db.getSetting('first_run_complete') === null;
+
+    if (isFirstRun) {
+      // Open first run sync window
+      createFirstRunWindow();
+    } else {
+      // Open main app directly
+      createWindow();
+    }
+
+    // Close credentials window after a short delay
+    setTimeout(() => {
+      if (credentialWindow && !credentialWindow.isDestroyed()) {
+        credentialWindow.close();
+      }
+    }, 500);
+  });
+}
+
+function createFirstRunWindow() {
+  let firstRunWindow = new BrowserWindow({
+    width: 600,
+    height: 450,
+    resizable: false,
+    modal: false,
+    parent: null,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  firstRunWindow.loadFile('src/renderer/firstRun.html');
+
+  // Listen for first-run-complete event
+  appEvents.once('first-run-complete', () => {
+    // Open main app
     createWindow();
-    // THEN close credentials window
-    credentialWindow.close();
+    // Close first-run window
+    setTimeout(() => {
+      if (firstRunWindow && !firstRunWindow.isDestroyed()) {
+        firstRunWindow.close();
+      }
+    }, 500);
+  });
+
+  // Handle sync failure (user clicked abort)
+  appEvents.once('first-run-aborted', () => {
+    // Re-open credentials window
+    createCredentialsWindow();
+    // Close first-run window
+    setTimeout(() => {
+      if (firstRunWindow && !firstRunWindow.isDestroyed()) {
+        firstRunWindow.close();
+      }
+    }, 500);
+  });
+
+  // Handle window closed unexpectedly
+  firstRunWindow.on('closed', () => {
+    firstRunWindow = null;
   });
 }
 
@@ -86,11 +145,20 @@ app.whenReady().then(async () => {
   // Check if credentials exist (real check, not mock)
   const hasCredentials = await checkCredentials();
 
-  log.info('App ready, creating window...'); 
+  log.info('App ready, creating window...');
 
   // Load appropriate view based on credential state
   if (hasCredentials) {
-    createWindow();
+    // Check if this is first run (credentials exist but never completed initial sync)
+    const isFirstRun = db.getSetting('first_run_complete') === null;
+
+    if (isFirstRun) {
+      // Credentials exist but first run never completed
+      createFirstRunWindow();
+    } else {
+      // Normal load - open main app
+      createWindow();
+    }
   } else {
     createCredentialsWindow();
   }
