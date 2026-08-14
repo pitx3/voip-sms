@@ -167,8 +167,27 @@ async function updateStatusBar() {
 // --- Sync Button ---
 
 const syncMessagesBtn = document.getElementById('sync-messages-btn');
+const syncIcon = syncMessagesBtn?.querySelector('img');
+
+// Store original icon/alt/title for restoration after sync
+const originalIcon = syncIcon?.src;
+const originalAlt = syncIcon?.alt;
+const originalTitle = syncMessagesBtn?.title;
+
+// Spinner icon (animated GIF)
+const spinnerIcon = 'assets/spinner.gif';
+
+// Request notification permission once (user sees prompt on first sync)
+Notification.requestPermission();
+
 if (syncMessagesBtn) {
   syncMessagesBtn.addEventListener('click', async () => {
+    // Set syncing state
+    if (syncIcon) {
+      syncIcon.src = spinnerIcon;
+      syncIcon.alt = 'Syncing...';
+    }
+    syncMessagesBtn.title = 'Sync in progress...';
     syncMessagesBtn.disabled = true;
 
     try {
@@ -176,17 +195,37 @@ if (syncMessagesBtn) {
 
       if (result.success) {
         console.log(`Synced ${result.count} messages`);
+        
+        // Show system notification
+        new Notification('VoipSMS Sync', {
+          body: `✓ Synced ${result.count} messages`
+        });
+        
+        // Refresh UI
         await renderConversationList();
         if (selectedContact) {
           await renderMessages(selectedContact.did_id, selectedContact.contact_number);
         }
       } else {
-        alert('Failed to sync messages: ' + result.error);
+        // Show error notification
+        new Notification('VoipSMS Sync', {
+          body: `✗ Sync failed: ${result.error}`
+        });
       }
     } catch (error) {
       console.error('Sync failed:', error);
-      alert('Failed to sync messages');
+      
+      // Show error notification
+      new Notification('VoipSMS Sync', {
+        body: `✗ Sync failed: ${error.message}`
+      });
     } finally {
+      // Reset button state
+      if (syncIcon) {
+        syncIcon.src = originalIcon;
+        syncIcon.alt = originalAlt;
+      }
+      syncMessagesBtn.title = originalTitle;
       syncMessagesBtn.disabled = false;
     }
   });
