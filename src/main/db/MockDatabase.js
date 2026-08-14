@@ -1,6 +1,6 @@
 // src/main/db/MockDatabase.js
 
-import { Database } from './Database.js';
+import Database from './Database.js';
 
 /**
  * In-memory mock database for testing and development.

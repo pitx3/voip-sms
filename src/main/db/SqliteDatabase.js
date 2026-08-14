@@ -187,7 +187,7 @@ class SqliteDatabase extends Database {
    * @returns {Array} Array of message rows (raw database format).
    */
   getMessages(options = {}) {
-    const { didId, contactId, from, to, limit } = options;
+    const { didId, contact_number, from, to, limit } = options;
 
     let query = 'SELECT * FROM messages WHERE 1=1';
     const params = [];
@@ -197,9 +197,9 @@ class SqliteDatabase extends Database {
       params.push(didId);
     }
 
-    if (contactId) {
-      query += ' AND contact_id = ?';
-      params.push(contactId);
+    if (contact_number) {
+      query += ' AND contact_number = ?';
+      params.push(contact_number);
     }
 
     if (from) {

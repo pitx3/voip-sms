@@ -3,6 +3,7 @@
 import { showNewConversationDialog } from './ui/newConversationDialog.js';
 import { formatPhoneNumber, formatMessageTime } from './utils/format.js';
 import { getMockStatus, getMessagesDb, getContactDb } from './api/ipc.js';
+//import log from 'electron-log';
 
 // State
 let selectedContact = null;  // { did_id, contact_number }
@@ -118,6 +119,8 @@ async function renderMessages(did_id, contact_number) {
   listEl.innerHTML = '';
 
   // Fetch messages for this conversation
+  console.log(`renderMessages: did_id ${did_id}, contact_number ${contact_number}`)
+  //log.debug(`[renderer.js] renderMessages: did_id ${did_id}, contact_number ${contact_number} `);
   const result = await getMessagesDb({
     did_id,
     contact_number,

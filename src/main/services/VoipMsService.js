@@ -1,4 +1,5 @@
 // src/main/voipms/VoipMsService.js
+import log from 'electron-log';
 
 /**
  * VoipMsService - Orchestrates Voip.ms API calls and database synchronization
@@ -83,7 +84,7 @@ export class VoipMsService {
     const currentSyncTimestamp = Date.now();
 
     // Calculate date range
-    const lastSyncTimestamp = this.database.getSetting('last_message_sync');
+    const lastSyncTimestamp = parseInt(this.database.getSetting('last_message_sync'), 10) || null;
     const { from, to } = this._calculateDateRange(lastSyncTimestamp);
 
     // Get timezone offset (e.g., -5 for EST, -8 for PST)
@@ -100,18 +101,25 @@ export class VoipMsService {
 
     // Transform API response to our format
     const transformed = this._transformMessages(messages);
+    log.debug('[VoipMsService] First message DID (before resolution):', transformed[0]?.did);
+
 
     // Resolve DIDs (lookup existing or auto-add missing)
     const allDids = this.database.getDids();
+    log.debug('[VoipMsService] All DIDs from DB:', allDids);
+
     const didMap = {};
     allDids.forEach(d => {
       didMap[d.did] = d.id;
     });
 
+    log.debug('[VoipMsService] DID map:', didMap);
+
     const messagesWithDidId = transformed.map(msg => {
       let didId = didMap[msg.did];
 
       if (!didId) {
+        log.warn('[VoipMsService] DID not found, auto-adding:', msg.did);
         // DID not in DB, add it automatically
         const newDid = this.database.addDid({
           did: msg.did,
@@ -127,6 +135,8 @@ export class VoipMsService {
         did_id: didId
       };
     });
+
+    log.debug('[VoipMsService] First message DID (after resolution):', messagesWithDidId[0]?.did_id);
 
     // Sync to database
     if (this.database) {
