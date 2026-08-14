@@ -3,7 +3,7 @@
 /**
  * Abstract database interface defining the contract for database implementations.
  */
-export class Database {
+export default class Database {
   /**
    * Initialize the database (run migrations, create tables, etc.)
    * @returns {Promise<this>}

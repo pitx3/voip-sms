@@ -1,28 +1,29 @@
-// src/main/db/SqLiteDatabase.js
+// src/main/db/SqliteDatabase.js
 
-const Database = require('./Database');
-const BetterSqlite3 = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+import Database from './Database.js';
+import BetterSqlite3 from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+import { runMigrations } from './migrations.js';
 
 /**
  * SQLite implementation of the Database abstraction using better-sqlite3.
  * All methods are synchronous - better-sqlite3 is a synchronous library.
  */
-class SqLiteDatabase extends Database {
+class SqliteDatabase extends Database {
   /**
-   * Create a new SqLiteDatabase instance.
+   * Create a new SqliteDatabase instance.
    * @param {string} dbPath - Path to the SQLite database file.
    */
   constructor(dbPath) {
     super();
-    
+
     // Ensure directory exists
     const dbDir = path.dirname(dbPath);
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }
-    
+
     this.db = new BetterSqlite3(dbPath);
     this.db.pragma('journal_mode = WAL');
   }
@@ -32,28 +33,7 @@ class SqLiteDatabase extends Database {
    * Creates the migrations table if it doesn't exist.
    */
   init() {
-    const migrations = require('./migrations');
-    
-    // Create migrations table if it doesn't exist
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS migrations (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        applied_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-      )
-    `);
-    
-    // Run pending migrations
-    for (const migration of migrations) {
-      const stmt = this.db.prepare('SELECT 1 FROM migrations WHERE name = ?');
-      const exists = stmt.get(migration.name);
-      
-      if (!exists) {
-        this.db.exec(migration.sql);
-        const insert = this.db.prepare('INSERT INTO migrations (name) VALUES (?)');
-        insert.run(migration.name);
-      }
-    }
+    runMigrations(this.db);
   }
 
   // =============================================================================
@@ -76,17 +56,16 @@ class SqLiteDatabase extends Database {
    */
   addDid(did) {
     const stmt = this.db.prepare(`
-      INSERT INTO dids (did, name, description, sms_enabled, mms_enabled, last_sync_date, created_at, updated_at)
-      VALUES (@did, @name, @description, @sms_enabled, @mms_enabled, @last_sync_date, @created_at, @updated_at)
+      INSERT INTO dids (did, description, sms_enabled, mms_available, last_sync_date, created_at, updated_at)
+      VALUES (@did, @description, @sms_enabled, @mms_available, @last_sync_date, @created_at, @updated_at)
     `);
 
     const now = new Date().toISOString();
     const result = stmt.run({
       did: did.did,
-      name: did.name || null,
       description: did.description || '',
-      sms_enabled: did.sms_enabled ?? 1,
-      mms_enabled: did.mms_enabled ?? 1,
+      sms_enabled: did.sms_enabled ?? 0,
+      mms_available: did.mms_available ?? 0,
       last_sync_date: did.last_sync_date || null,
       created_at: now,
       updated_at: now
@@ -95,10 +74,9 @@ class SqLiteDatabase extends Database {
     return {
       id: result.lastInsertRowid,
       did: did.did,
-      name: did.name || null,
       description: did.description || '',
-      sms_enabled: did.sms_enabled ?? 1,
-      mms_enabled: did.mms_enabled ?? 1,
+      sms_enabled: did.sms_enabled ?? 0,
+      mms_available: did.mms_available ?? 0,
       last_sync_date: did.last_sync_date || null,
       created_at: now,
       updated_at: now
@@ -169,20 +147,18 @@ class SqLiteDatabase extends Database {
       if (existing) {
         // Update existing DID
         this.updateDid(existing.id, {
-          name: did.name || existing.name,
           description: did.description || existing.description,
           sms_enabled: did.sms_enabled ?? existing.sms_enabled,
-          mms_enabled: did.mms_enabled ?? existing.mms_enabled,
+          mms_available: did.mms_available ?? existing.mms_available,
           last_sync_date: new Date().toISOString()
         });
       } else {
         // Add new DID
         this.addDid({
           did: did.did,
-          name: did.name || null,
           description: did.description || '',
-          sms_enabled: did.sms_enabled ?? 1,
-          mms_enabled: did.mms_enabled ?? 1,
+          sms_enabled: did.sms_enabled ?? 0,
+          mms_available: did.mms_available ?? 0,
           last_sync_date: new Date().toISOString()
         });
       }
@@ -212,37 +188,37 @@ class SqLiteDatabase extends Database {
    */
   getMessages(options = {}) {
     const { didId, contactId, from, to, limit } = options;
-    
+
     let query = 'SELECT * FROM messages WHERE 1=1';
     const params = [];
-    
+
     if (didId) {
       query += ' AND did_id = ?';
       params.push(didId);
     }
-    
+
     if (contactId) {
       query += ' AND contact_id = ?';
       params.push(contactId);
     }
-    
+
     if (from) {
       query += ' AND timestamp >= ?';
       params.push(from);
     }
-    
+
     if (to) {
       query += ' AND timestamp <= ?';
       params.push(to);
     }
-    
+
     query += ' ORDER BY timestamp ASC';
-    
+
     if (limit) {
       query += ' LIMIT ?';
       params.push(limit);
     }
-    
+
     const stmt = this.db.prepare(query);
     const rows = stmt.all(...params);
     return rows;
@@ -254,15 +230,22 @@ class SqLiteDatabase extends Database {
    * @returns {{synced: number, new: number}} Sync statistics.
    */
   saveMessages(messages) {
+    if (!messages || messages.length === 0) {
+      return { synced: 0, new: 0 };
+    }
+
+    // Prepare the statement ONCE (more efficient)
+    const insert = this.db.prepare(`
+    INSERT OR IGNORE INTO messages (
+      did_id, message_id, direction, contact_number,
+      message_body, timestamp, carrier_status, media_urls, is_read
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
     let newCount = 0;
-    
+
     for (const msg of messages) {
-      const result = this.db.run(`
-        INSERT OR IGNORE INTO messages (
-          did_id, message_id, direction, contact_number,
-          message_body, timestamp, carrier_status, media_urls, is_read
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
+      const result = insert.run(
         msg.did_id,
         msg.message_id,
         msg.direction,
@@ -272,13 +255,13 @@ class SqLiteDatabase extends Database {
         msg.carrier_status,
         msg.media_urls,
         msg.is_read
-      ]);
-      
+      );
+
       if (result.changes > 0) {
         newCount++;
       }
     }
-    
+
     return {
       synced: messages.length,
       new: newCount
@@ -310,7 +293,7 @@ class SqLiteDatabase extends Database {
       INSERT INTO contacts (name, phone_number, notes)
       VALUES (?, ?, ?)
     `);
-    
+
     const result = stmt.run(contact.name, contact.phone_number, contact.notes || null);
     return result.lastInsertRowid;
   }
@@ -327,7 +310,7 @@ class SqLiteDatabase extends Database {
       SET name = ?, phone_number = ?, notes = ?
       WHERE id = ?
     `);
-    
+
     const result = stmt.run(contact.name, contact.phone_number, contact.notes || null, id);
     return result.changes > 0;
   }
@@ -379,4 +362,4 @@ class SqLiteDatabase extends Database {
   }
 }
 
-module.exports = SqLiteDatabase;
+export default SqliteDatabase;

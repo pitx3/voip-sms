@@ -2,6 +2,11 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Run all pending migrations on the given database connection
@@ -23,7 +28,7 @@ export function runMigrations(db) {
     .map(row => row.migration_name);
 
   // Find all migration files
-  const migrationsDir = path.join(__dirname, '../../migrations');
+  const migrationsDir = path.join(__dirname, '../../../migrations');
   const migrationFiles = fs
     .readdirSync(migrationsDir)
     .filter(f => f.endsWith('.sql'))
