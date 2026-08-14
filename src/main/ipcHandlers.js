@@ -1,6 +1,7 @@
 // src/main/ipcHandlers.js
 
 import { ipcMain } from 'electron';
+import log from 'electron-log';
 import { appEvents } from './events.js';
 import { saveCredentials, getCredentials, hasCredentials as checkCredentials, deleteCredentials } from './services/CredentialStorageService.js';
 
@@ -42,10 +43,13 @@ export function registerIpcHandlers({ db, voipMsService, getMockStatus }) {
 
   // Sync messages from Voip.ms API (slow path)
   ipcMain.handle('sync-messages-voipms', async () => {
+    log.info('[Sync-Messages] Starting message sync...');
     try {
       const messages = await voipMsService.getMessages();
+      log.info(`[Sync-Messages] Success: ${messages.length} messages synced`);
       return { success: true, count: messages.length };
     } catch (error) {
+      log.error('[Sync-Messages] Failed:', error.message);
       console.error('Failed to sync messages:', error);
       return { success: false, error: error.message };
     }

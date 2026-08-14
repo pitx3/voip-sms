@@ -2,11 +2,19 @@
 
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
+import log from 'electron-log';
 import { getDatabase, getVoipMsService, getMockStatus } from './di.config.js';
 import { fileURLToPath } from 'url';
 import { registerIpcHandlers } from './ipcHandlers.js';
 import { appEvents } from './events.js';
 import { hasCredentials as checkCredentials } from './services/CredentialStorageService.js';
+
+// Configure logging
+log.transports.file.level = 'info';
+log.transports.console.level = 'debug';
+log.transports.file.maxSize = 2 * 1024 * 1024;  // 2MB
+
+log.info('VoipSMS Desktop starting...');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,6 +86,8 @@ app.whenReady().then(async () => {
   // Check if credentials exist (real check, not mock)
   const hasCredentials = await checkCredentials();
 
+  log.info('App ready, creating window...'); 
+
   // Load appropriate view based on credential state
   if (hasCredentials) {
     createWindow();
@@ -87,6 +97,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  log.info('All windows closed');
   if (process.platform !== 'darwin') {
     app.quit();
   }

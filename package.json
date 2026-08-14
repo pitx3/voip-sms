@@ -13,7 +13,8 @@
     "test-all": "vitest run --exclude 'tests/integration/unsafe/'",
     "test-intg": "vitest run tests/integration/ --exclude 'tests/integration/unsafe/'",
     "test-unsafe": "vitest run tests/integration/unsafe/",
-    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "rebuild": "electron-builder install-app-deps",
+    "package": "electron-builder --linux appimage",
     "postinstall": "npm run rebuild"
   },
   "keywords": [
@@ -26,11 +27,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "better-sqlite3": "^13.0.2"
+    "better-sqlite3": "^13.0.2",
+    "electron-log": "^5.4.4"
   },
   "devDependencies": {
     "electron": "^43.2.0",
-    "electron-rebuild": "^3.2.9",
+    "electron-builder": "^26.15.3",
     "jsdom": "^30.0.1",
     "vitest": "^4.1.10"
   }
